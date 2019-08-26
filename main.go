@@ -24,7 +24,7 @@ func loadTemplate(content ...string) *template.Template {
 // Handler for the main page, which we wire up to the route at "/" below in `main`.
 // TODO ensure it loads only by ID
 func contentGetter(w http.ResponseWriter, r *http.Request, b *Broker) {
-	var rid = strings.TrimPrefix(r.URL.Path, "rooms")
+	var rid = strings.TrimPrefix(r.URL.Path, "/rooms/")
 	if _, err := strconv.ParseInt(rid, 10, 8); err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -38,7 +38,7 @@ func contentGetter(w http.ResponseWriter, r *http.Request, b *Broker) {
 // Method that controls modifying the content of a template.
 // First it attempts to modify it and then it will push the message to the output.
 func changeContent(w http.ResponseWriter, r *http.Request, b *Broker) {
-	var rid = strings.TrimPrefix(r.URL.Path, "rooms")
+	var rid = strings.TrimPrefix(r.URL.Path, "/rooms/")
 	var body = parseBody(r)
 	ReplaceInTemplate(rid, body.convertToMap())
 
