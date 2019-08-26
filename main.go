@@ -1,13 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 )
 
 // Loads the template
@@ -23,26 +22,22 @@ func loadTemplate(content ...string) *template.Template {
 
 // Handler for the main page, which we wire up to the route at "/" below in `main`.
 // TODO ensure it loads only by ID
-func contentGetter(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	t := loadTemplate()
-
-	t.Execute(w, "friend")
+func contentGetter(r *http.Request, b *Broker) {
+	var rid = strings.TrimPrefix(r.URL.Path, "rooms")
+	t := loadTemplate(rid)
+	pushMessage(b, *t, rid)
 	log.Println("Finished HTTP request at", r.URL.Path)
 }
 
-func changeContent(w http.ResponseWriter, r *http.Request) {
+// Method that controls modifying the content of a template.
+// First it attempts to modify it and then it will push the message to the output.
+func changeContent(r *http.Request, b *Broker) {
 	var rid = strings.TrimPrefix(r.URL.Path, "rooms")
 	var body = parseBody(r)
 	ReplaceInTemplate(rid, body.convertToMap())
 
 	t := loadTemplate(rid)
-
-	t.Execute(w, "friend")
+	pushMessage(b, *t, rid)
 	log.Println("Finished HTTP Request at", r.URL.Path)
 }
 
@@ -56,6 +51,12 @@ func parseBody(r *http.Request) RequestBody {
 	}
 
 	return rb
+}
+
+func pushMessage(b *Broker, t template.Template, rid string) {
+	var tpl bytes.Buffer
+	t.Execute(&tpl, strings.Join([]string{"room"}, rid))
+	b.messages <- tpl.String()
 }
 
 // Main routine
@@ -77,32 +78,17 @@ func main() {
 	// request to "/events/".
 	http.Handle("/events/", b)
 
-	// Generate a constant stream of events that get pushed
-	// into the Broker's messages channel and are then broadcast
-	// out to any clients that are attached.
-	go func() {
-		for i := 0; ; i++ {
-
-			// Create a little message to send to clients,
-			// including the current time.
-			b.messages <- fmt.Sprintf("%d - the time is %v", i, time.Now())
-
-			// Print a nice log message and sleep for 5s.
-			log.Printf("Sent message %d ", i)
-			time.Sleep(5e9)
-
-		}
-	}()
-
 	// Routing handler
 	http.HandleFunc("/rooms/:id", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			contentGetter(w, r)
+			contentGetter(r, b)
+			return
 		case http.MethodPost:
-			changeContent(w, r)
+			changeContent(r, b)
+			return
 		default:
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
 	})
