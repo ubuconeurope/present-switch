@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -22,21 +23,27 @@ func loadTemplate(content ...string) *template.Template {
 
 // Handler for the main page, which we wire up to the route at "/" below in `main`.
 // TODO ensure it loads only by ID
-func contentGetter(r *http.Request, b *Broker) {
+func contentGetter(w http.ResponseWriter, r *http.Request, b *Broker) {
 	var rid = strings.TrimPrefix(r.URL.Path, "rooms")
+	if _, err := strconv.ParseInt(rid, 10, 8); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	t := loadTemplate(rid)
+	t.Execute(w, "friend")
 	pushMessage(b, *t, rid)
 	log.Println("Finished HTTP request at", r.URL.Path)
 }
 
 // Method that controls modifying the content of a template.
 // First it attempts to modify it and then it will push the message to the output.
-func changeContent(r *http.Request, b *Broker) {
+func changeContent(w http.ResponseWriter, r *http.Request, b *Broker) {
 	var rid = strings.TrimPrefix(r.URL.Path, "rooms")
 	var body = parseBody(r)
 	ReplaceInTemplate(rid, body.convertToMap())
 
 	t := loadTemplate(rid)
+	t.Execute(w, "friend")
 	pushMessage(b, *t, rid)
 	log.Println("Finished HTTP Request at", r.URL.Path)
 }
@@ -79,13 +86,14 @@ func main() {
 	http.Handle("/events/", b)
 
 	// Routing handler
-	http.HandleFunc("/rooms/:id", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/", http.NotFoundHandler())
+	http.HandleFunc("/rooms/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			contentGetter(r, b)
+			contentGetter(w, r, b)
 			return
 		case http.MethodPost:
-			changeContent(r, b)
+			changeContent(w, r, b)
 			return
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -94,4 +102,5 @@ func main() {
 	})
 	// Start the server and listen forever on port 8000.
 	http.ListenAndServe(":8000", nil)
+	log.Print("Server staretd listening to new clients.")
 }
