@@ -36,10 +36,6 @@ func contentGetter(w http.ResponseWriter, r *http.Request) {
 }
 
 func changeContent(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
 	var rid = strings.TrimPrefix(r.URL.Path, "rooms")
 	var body = parseBody(r)
 	ReplaceInTemplate(rid, body.convertToMap())
@@ -99,10 +95,17 @@ func main() {
 	}()
 
 	// Routing handler
-	//
-	http.Handle("/rooms/:id", http.HandlerFunc(contentGetter))
-	http.Handle("/rooms/:id", http.HandlerFunc(changeContent))
-
+	http.HandleFunc("/rooms/:id", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			contentGetter(w, r)
+		case http.MethodPost:
+			changeContent(w, r)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+	})
 	// Start the server and listen forever on port 8000.
 	http.ListenAndServe(":8000", nil)
 }
