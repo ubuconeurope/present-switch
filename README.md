@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/ubuconeurope/present-switch.svg?branch=master)](https://travis-ci.org/ubuconeurope/present-switch)
 # Presenter Switch
 
 The goal of this project is to allow automated triggering of content into HTTP clients listening on a [SSE](https://en.wikipedia.org/wiki/Server-sent_events) connection.
