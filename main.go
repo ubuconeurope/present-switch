@@ -95,6 +95,8 @@ func main() {
 	}()
 
 	// Routing handler
+	http.Handle("/", http.FileServer(http.Dir("static_files")))
+
 	http.HandleFunc("/rooms/:id", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -107,5 +109,6 @@ func main() {
 		}
 	})
 	// Start the server and listen forever on port 8000.
+	log.Println("Starting...")
 	http.ListenAndServe(":8000", nil)
 }
