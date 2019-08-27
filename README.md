@@ -14,7 +14,7 @@ Check out the repository and simply install the binaries (requires [Go](https://
 `git clone https://github.com/ubuconeurope/present-switch`  
 `cd present-switch/`  
 `go build`  
-`go run ./present-switch`   
+`./present-switch`   
 
 _Note:_ If you modify folder names, then the binary file should change to the other name as well.  
 
