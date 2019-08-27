@@ -91,11 +91,11 @@ Sponsors - Gold
     <script id="extra_script">
 
       // SSE
-      var updater = new EventSource('/rooms/1');
+      var updater = new EventSource('/events');
 
       // Create a callback for when a new message is received.
       updater.onmessage = function(e) {
-        document.querySelector("#slide-main-title > div:nth-child(1) > h1:nth-child(1)").innerHTML = e.data;
+        document.querySelector("#slide-main-title > div:nth-child(1) > h1:nth-child(1)").innerHTML = e.data.substring(0,25);
       };
 
     </script>
