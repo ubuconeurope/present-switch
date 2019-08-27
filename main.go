@@ -3,11 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Loads the template
@@ -100,6 +102,22 @@ func main() {
 			return
 		}
 	})
+
+	// This function sends data for the message chan every 5seconds.
+	go func() {
+		for i := 0; ; i++ {
+
+			// Create a little message to send to clients,
+			// including the current time.
+			b.messages <- fmt.Sprintf("TEST MESSAGE: %d - the time is: <br>%v", i, time.Now())
+
+			// Print a nice log message and sleep for 5s.
+			log.Printf("Sent message %d ", i)
+			time.Sleep(5e9)
+
+		}
+	}()
+
 	// Start the server and listen forever on port 8000.
 	http.ListenAndServe(":8000", nil)
 	log.Print("Server staretd listening to new clients.")
