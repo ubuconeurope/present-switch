@@ -85,7 +85,7 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		// Write to the ResponseWriter, `w`.
-		fmt.Fprintf(w, "data: Message: %s\n\n", msg)
+		fmt.Fprintf(w, "%s\n\n", msg)
 		// Flush the response.  This is only possible if the repsonse supports streaming.
 		f.Flush()
 	}
