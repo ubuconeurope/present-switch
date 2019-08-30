@@ -13,12 +13,11 @@ Check out the repository and simply install the binaries (requires [Go](https://
 
 `git clone https://github.com/ubuconeurope/present-switch`  
 `cd present-switch/`  
-`go build`  
-`./present-switch`   
+`go run main.go`   
 
 _Note:_ If you modify folder names, then the binary file should change to the other name as well.  
 
-The server should then start listening on port `8000`.
+The server should then start listening on port `3000`.
 
 
 ## Contributing
