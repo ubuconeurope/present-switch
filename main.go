@@ -14,7 +14,6 @@ import (
 
 func main() {
 	s := sse.NewServer(&sse.Options{
-		// CORS headers
 		Headers: map[string]string{
 			"Access-Control-Allow-Origin":  "*",
 			"Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -28,10 +27,9 @@ func main() {
 	})
 	defer s.Shutdown()
 
-	http.HandleFunc("/rooms/", func(w http.ResponseWriter, r *http.Request) {
-		var rid = strings.TrimPrefix(r.URL.Path, "/rooms/")
-		http.FileServer(http.Dir(fmt.Sprintf("./templates/%s/static_files/", rid)))
-	})
+	// Create internal redirect server to render static files
+	fs := http.FileServer(http.Dir("templates"))
+	http.Handle("/rooms/", http.StripPrefix("/rooms/", fs))
 
 	// Register /events endpoint
 	http.Handle("/events/", s)
@@ -39,7 +37,7 @@ func main() {
 	go func() {
 		for {
 			s.SendMessage("/events/channel-1", sse.SimpleMessage(time.Now().String()))
-			time.Sleep(5 * time.Second)
+			time.Sleep(10 * time.Second)
 		}
 	}()
 
@@ -48,7 +46,7 @@ func main() {
 		for {
 			i++
 			s.SendMessage("/events/channel-2", sse.SimpleMessage(strconv.Itoa(i)))
-			time.Sleep(5 * time.Second)
+			time.Sleep(10 * time.Second)
 		}
 	}()
 
