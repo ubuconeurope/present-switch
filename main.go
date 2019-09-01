@@ -3,12 +3,44 @@ package main
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/alexandrevicenzi/go-sse"
 )
+
+func handleRooms(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		re := regexp.MustCompile(`.*(/rooms/[0-9]+)/.*`)
+		prefix := re.FindStringSubmatch(r.URL.Path)
+
+		if len(prefix) > 0 {
+			if p := strings.TrimPrefix(r.URL.Path, prefix[1]); len(p) < len(r.URL.Path) {
+				r2 := new(http.Request)
+				*r2 = *r
+				r2.URL = new(url.URL)
+				*r2.URL = *r.URL
+				r2.URL.Path = p
+				h.ServeHTTP(w, r2)
+			} else {
+				http.NotFound(w, r)
+			}
+		} else {
+			http.NotFound(w, r)
+		}
+
+	})
+
+	// prefixToRemove := fmt.Sprintf("/rooms/%s/", numberToRemove[1])
+	// fmt.Println("removing prefix: ", prefixToRemove)
+
+	// http.StripPrefix(prefixToRemove, http.FileServer(http.Dir("html_template")))
+	// http.StripPrefix("/rooms/", http.FileServer(http.Dir("html_template")))
+}
 
 func main() {
 	s := sse.NewServer(&sse.Options{
@@ -26,8 +58,7 @@ func main() {
 	defer s.Shutdown()
 
 	// Create internal redirect server to render static files
-	fs := http.FileServer(http.Dir("templates"))
-	http.Handle("/rooms/", http.StripPrefix("/rooms/", fs))
+	http.Handle("/rooms/", handleRooms(http.FileServer(http.Dir("html_template"))))
 
 	// Register /events endpoint
 	http.Handle("/events/", s)
