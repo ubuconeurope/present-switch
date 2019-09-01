@@ -11,61 +11,61 @@
 
 <body>
   <textarea id="source">
-      name: inverse
-      layout: true
-      class: center, middle, inverse
+name: inverse
+layout: true
+class: center, middle, inverse
 
-      ---
+---
 
-      name: impact
-      layout: true
-      class: center, middle, impact, content
+name: impact
+layout: true
+class: center, middle, impact, content
 
-      ---
+---
 
-      name: title
-      layout: true
-      class: title center
+name: title
+layout: true
+class: title center
 
-      ---
+---
 
-      name: content
-      layout: true
+name: content
+layout: true
 
-      ---
+---
 
-      template: title
-      name: main-title
+template: title
+name: main-title
 
-      .content[
+.content[
 
-      # <span id="room_placeholder">Room placeholder</span>
+# <span id="title_placeholder">Title placeholder</span>
 
-      ## Next up: <span id="next_placeholder">Talk placeholder</span>
+## Next up: <span id="next_placeholder">Talk placeholder</span>
 
-      .small[presentation by: Speaker on Ubucon Europe 2019]
+.small[presentation by: Speaker on Ubucon Europe 2019]
 
-      ## Starts at: <span id="time_placeholder">Time placeholder</span>
+.tiny[Starts at: <span id="time_placeholder">Time placeholder</span>]
 
-      ]
+]
 
-      ---
+---
 
-      # Sponsors - 1
+# Sponsors - 1
 
-      Sponsors Diamond
+Sponsors Diamond
 
-      ---
+---
 
-      # Sponsors - 2
+# Sponsors - 2
 
-      Sponsors Platinum
+Sponsors Platinum
 
-      ---
+---
 
-      # Sponsors - 3
+# Sponsors - 3
 
-      Sponsors - Gold
+Sponsors - Gold
 
 
     </textarea>
@@ -95,8 +95,12 @@
     var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1]
     es = new EventSource('/events/channel-'+roomNumber);
     es.onmessage = function (e) {
-      message = JSON.parse(e)
-      document.querySelector("#slide-main-title > div:nth-child(1) > h1:nth-child(1)").innerHTML = e.data.title;
+      message = JSON.parse(e.data)
+
+      document.getElementById('title_placeholder').innerHTML = message.title;
+      document.getElementById('next_placeholder').innerHTML  = message.next;
+      document.getElementById('time_placeholder').innerHTML  = message.time;
+
     };
   </script>
 

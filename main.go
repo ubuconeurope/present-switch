@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -15,11 +16,15 @@ import (
 
 func handleRooms(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		re := regexp.MustCompile(`.*(/rooms/[0-9]+)/.*`)
-		prefix := re.FindStringSubmatch(r.URL.Path)
+		re := regexp.MustCompile(`.*(/rooms/([0-9]+))/.*`)
+		reMatch := re.FindStringSubmatch(r.URL.Path)
 
-		if len(prefix) > 0 {
-			if p := strings.TrimPrefix(r.URL.Path, prefix[1]); len(p) < len(r.URL.Path) {
+		if len(reMatch) == 3 {
+			prefix := reMatch[1]
+			number := reMatch[2]
+			fmt.Println("Room number: ", number, " (at ", r.URL.Path, ")")
+
+			if p := strings.TrimPrefix(r.URL.Path, prefix); len(p) < len(r.URL.Path) {
 				r2 := new(http.Request)
 				*r2 = *r
 				r2.URL = new(url.URL)
@@ -65,8 +70,9 @@ func main() {
 
 	go func() {
 		for {
-			s.SendMessage("/events/channel-1", sse.SimpleMessage(time.Now().String()))
-			time.Sleep(10 * time.Second)
+			stringJSON := `{"title": "Title for Room 1", "next": "Next for now", "time": "` + time.Now().String() + `"}`
+			s.SendMessage("/events/channel-1", sse.SimpleMessage(stringJSON))
+			time.Sleep(5 * time.Second)
 		}
 	}()
 
@@ -74,8 +80,9 @@ func main() {
 		i := 0
 		for {
 			i++
-			s.SendMessage("/events/channel-2", sse.SimpleMessage(strconv.Itoa(i)))
-			time.Sleep(10 * time.Second)
+			stringJSON := `{"title": "Title for Room 2", "next": "Next for now", "time": "` + strconv.Itoa(i) + `"}`
+			s.SendMessage("/events/channel-2", sse.SimpleMessage(stringJSON))
+			time.Sleep(5 * time.Second)
 		}
 	}()
 
