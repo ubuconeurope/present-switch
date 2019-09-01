@@ -5,7 +5,7 @@
   <title>Ubucon Europe 2019 Presentation</title>
   <meta charset="utf-8">
   <style>
-    @import url(style.css);
+    @import url(style.css?1);
   </style>
 </head>
 
@@ -41,11 +41,16 @@ name: main-title
 
 # <span id="title_placeholder">Title placeholder</span>
 
-## Next up: <span id="next_placeholder">Talk placeholder</span>
 
-.small[presentation by: Speaker on Ubucon Europe 2019]
+.small[presentation by: <span id="speaker_placeholder">Speaker on Ubucon Europe 2019</span>]
 
-.tiny[Starts at: <span id="time_placeholder">Time placeholder</span>]
+.starts-at[
+<b>Starts at:</b> <span id="time_placeholder">Time placeholder</span>
+]
+
+.next-presentation[
+<b>Up Next:</b> <span id="next_placeholder">Talk placeholder</span>
+]
 
 ]
 
@@ -93,11 +98,12 @@ Sponsors - Gold
   </script>
   <script type="text/javascript">
     var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1]
-    es = new EventSource('/events/channel-'+roomNumber);
+    es = new EventSource('/events/room-'+roomNumber);
     es.onmessage = function (e) {
       message = JSON.parse(e.data)
 
       document.getElementById('title_placeholder').innerHTML = message.title;
+      document.getElementById('speaker_placeholder').innerHTML = message.speaker;
       document.getElementById('next_placeholder').innerHTML  = message.next;
       document.getElementById('time_placeholder').innerHTML  = message.time;
 
