@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -81,30 +80,6 @@ func main() {
 
 	// Register /events endpoint
 	http.Handle("/events/", s)
-
-	// go func() {
-	// 	for {
-	// 		stringJSON := `{"title": "Title for Room 1", "next": "Next Presentation title @ 16:00", "time": "` + time.Now().String() + `"}`
-	// 		s.SendMessage("/events/channel-1", sse.SimpleMessage(stringJSON))
-	// 		time.Sleep(5 * time.Second)
-	// 	}
-	// }()
-
-	// go func() {
-	// 	i := 0
-	// 	for {
-	// 		i++
-	// 		stringJSON := `{"title": "Title for Room 2", "next": "Next Presentation With a Relative Big Text Title, so I Can Test This big Text @ 16:00", "time": "` + strconv.Itoa(i) + `"}`
-	// 		s.SendMessage("/events/channel-2", sse.SimpleMessage(stringJSON))
-	// 		time.Sleep(5 * time.Second)
-	// 	}
-	// }()
-
-	fmt.Println("============= Instructions ==============")
-	fmt.Println("1) Open your browser at http://localhost:3000/rooms/1/ (do not forget the last /)")
-	fmt.Println(`2) curl -X POST -H 'Content-Type: application/json'  "http://localhost:3000/rooms/1" -d '{"title": "Title Room 1", "speaker": "John Doe", "time": "15:00", "next": "Next title @ 16:00"}'`)
-	fmt.Println("3) You may try with any other room number. They should stay independent")
-	fmt.Println()
 
 	log.Println("Listening at :3000")
 	http.ListenAndServe(":3000", nil)

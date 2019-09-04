@@ -11,13 +11,20 @@ At Ubucon Europe 2019, we will have 4 rooms to manage, each with their own sched
 
 Check out the repository and simply install the binaries (requires [Go](https://golang.org/) to be installed on your machine:
 
-`git clone https://github.com/ubuconeurope/present-switch`  
-`cd present-switch/`  
-`go run main.go`   
-
-_Note:_ If you modify folder names, then the binary file should change to the other name as well.  
-
+```
+git clone https://github.com/ubuconeurope/present-switch
+cd present-switch/
+go run main.go
+```
 The server should then start listening on port `3000`.
+
+Then: 
+```
+1) Open your browser at http://localhost:3000/rooms/1/ (do not forget the last /)
+2) curl -X POST -H 'Content-Type: application/json'  "http://localhost:3000/rooms/1" -d '{"title": "Title Room 1", "speaker": "John Doe", "time": "15:00", "next": "Next title @ 16:00"}'
+3) You may try with any other room number. They should stay independent
+```
+
 
 
 ## Contributing
