@@ -1,110 +1,86 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
+	"net/url"
+	"os"
+	"regexp"
 	"strings"
+
+	"github.com/alexandrevicenzi/go-sse"
 )
 
-// Loads the template
-// TODO add ways to dynamically set next conf name and etup
-func loadTemplate(content ...string) *template.Template {
-	// Read in the template with our SSE JavaScript code.
-	t, err := template.ParseFiles("templates/index.html")
-	if err != nil {
-		log.Fatal("Errors parsing your template file. Fix it and try again.")
-	}
-	return t
-}
+func handleRooms(h http.Handler, s *sse.Server) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Based on the implementation of the http.StripPrefix()
 
-// Handler for the main page, which we wire up to the route at "/" below in `main`.
-// TODO ensure it loads only by ID
-func contentGetter(w http.ResponseWriter, r *http.Request, b *Broker) {
-	var rid = strings.TrimPrefix(r.URL.Path, "/rooms/")
-	if _, err := strconv.ParseInt(rid, 10, 8); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-	t := loadTemplate(rid)
-	t.Execute(w, "friend")
-	pushMessage(b, *t, rid)
-	log.Println("Finished HTTP request at", r.URL.Path)
-}
+		re := regexp.MustCompile(`^(/rooms/([0-9]+))/?.*`) // 3 groups
+		reMatch := re.FindStringSubmatch(r.URL.Path)
 
-// Method that controls modifying the content of a template.
-// First it attempts to modify it and then it will push the message to the output.
-func changeContent(w http.ResponseWriter, r *http.Request, b *Broker) {
-	var rid = strings.TrimPrefix(r.URL.Path, "/rooms/")
-	var body = parseBody(r)
-	ReplaceInTemplate(rid, body.convertToMap())
+		if len(reMatch) == 3 {
+			prefix := reMatch[1]
+			roomNumber := reMatch[2]
 
-	t := loadTemplate(rid)
-	t.Execute(w, "friend")
-	pushMessage(b, *t, rid)
-	log.Println("Finished HTTP Request at", r.URL.Path)
-}
+			switch r.Method {
+			case "GET", "HEAD":
 
-// Method to parse body and handle its errors separately.
-func parseBody(r *http.Request) RequestBody {
-	var rb RequestBody
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&rb)
-	if err != nil {
-		panic(err)
-	}
+				if p := strings.TrimPrefix(r.URL.Path, prefix); len(p) < len(r.URL.Path) {
+					r2 := new(http.Request)
+					*r2 = *r
+					r2.URL = new(url.URL)
+					*r2.URL = *r.URL
+					r2.URL.Path = p
+					h.ServeHTTP(w, r2)
+				} else {
+					http.NotFound(w, r)
+				}
 
-	return rb
-}
+			case "POST", "PUT":
+				// curl -X POST "http://localhost:3000/rooms/1" -d '{"title": "Title Room 1", "speaker": "John Doe", "time": "15:00", "next": "Next title @ 16:00"}'
+				messageData, err := ioutil.ReadAll(r.Body)
+				if err != nil {
+					log.Println("Error: could not parse post body")
+					return
+				}
+				s.SendMessage("/events/room-"+roomNumber, sse.SimpleMessage(string(messageData)))
 
-func pushMessage(b *Broker, t template.Template, rid string) {
-	var tpl bytes.Buffer
-	t.Execute(&tpl, strings.Join([]string{"room"}, rid))
-	b.messages <- tpl.String()
-}
-
-// Main routine
-func main() {
-	// Make a new Broker instance
-	b := &Broker{
-		make(map[chan string]bool),
-		make(chan (chan string)),
-		make(chan (chan string)),
-		make(chan string),
-	}
-
-	// Start processing events
-	b.Start()
-
-	// Make b the HTTP handler for "/events/".  It can do
-	// this because it has a ServeHTTP method.  That method
-	// is called in a separate goroutine for each
-	// request to "/events/".
-	http.Handle("/events/", b)
-
-	// Routing handler
-	http.HandleFunc("/rooms/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			contentGetter(w, r, b)
-			return
-		case http.MethodPost:
-			changeContent(w, r, b)
-			return
-		default:
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
+			}
+		} else {
+			http.NotFound(w, r)
 		}
+
 	})
 
-	// Routing handler
-	http.Handle("/", http.FileServer(http.Dir("static_files")))
+	// prefixToRemove := fmt.Sprintf("/rooms/%s/", numberToRemove[1])
+	// fmt.Println("removing prefix: ", prefixToRemove)
 
-	// Start the server and listen forever on port 8000.
-	log.Println("Starting...")
-	http.ListenAndServe(":8000", nil)
-	log.Print("Server staretd listening to new clients.")
+	// http.StripPrefix(prefixToRemove, http.FileServer(http.Dir("html_template")))
+	// http.StripPrefix("/rooms/", http.FileServer(http.Dir("html_template")))
+}
+
+func main() {
+	s := sse.NewServer(&sse.Options{
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Methods": "GET, OPTIONS",
+			"Access-Control-Allow-Headers": "Keep-Alive,X-Requested-With,Cache-Control,Content-Type,Last-Event-ID",
+		},
+		// Custom channel name generator
+		ChannelNameFunc: func(request *http.Request) string {
+			return request.URL.Path
+		},
+		Logger: log.New(os.Stdout, "go-sse: ", log.Ldate|log.Ltime|log.Lshortfile),
+	})
+	defer s.Shutdown()
+
+	// Create internal redirect server to render static files
+	http.Handle("/rooms/", handleRooms(http.FileServer(http.Dir("html_template")), s))
+
+	// Register /events endpoint
+	http.Handle("/events/", s)
+
+	log.Println("Listening at :3000")
+	http.ListenAndServe(":3000", nil)
 }
