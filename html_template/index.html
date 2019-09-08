@@ -38,21 +38,29 @@ template: title
 name: main-title
 
 .content[
+# <span id="placeholder-current-title">Welcome Ubucon Europe 2019<!--Title placeholder--></span>
 
-# <span id="title_placeholder">Title placeholder</span>
-
-
-.small[presentation by: <span id="speaker_placeholder">Speaker on Ubucon Europe 2019</span>]
-
-.starts-at[
-<b>Starts at:</b> <span id="time_placeholder">Time placeholder</span>
+.small[presentation by: <span id="placeholder-current-speaker"><!--Speaker on Ubucon Europe 2019--></span>]
 ]
 
-.next-presentation[
-<b>Up Next:</b> <span id="next_placeholder">Talk placeholder</span>
+
+.room-info[
+.center[<b><span id="placeholder-room-name"></span></b>]
+
+<b>Starting at:</b> <span id="placeholder-current-time"><!--Time placeholder--></span>
+
+.small[
+<table>
+  <tr>
+    <td><b>Up Next:</b></td>
+    <td><span id="placeholder-next-title"><!--Talk placeholder--></span></td>
+  </tr>
+  <tr><td></td><td><span id="placeholder-next-speaker"></span></td></tr>
+  <tr><td></td><td><span id="placeholder-next-time"></span></td></tr>
+</table>
+]
 ]
 
-]
 
 ---
 
@@ -102,10 +110,13 @@ Sponsors - Gold
     es.onmessage = function (e) {
       message = JSON.parse(e.data)
 
-      document.getElementById('title_placeholder').innerHTML = message.title;
-      document.getElementById('speaker_placeholder').innerHTML = message.speaker;
-      document.getElementById('next_placeholder').innerHTML  = message.next;
-      document.getElementById('time_placeholder').innerHTML  = message.time;
+      document.getElementById('placeholder-room-name').innerHTML = message.room;
+      document.getElementById('placeholder-current-title').innerHTML = message.title;
+      document.getElementById('placeholder-current-speaker').innerHTML = message.speaker;
+      document.getElementById('placeholder-current-time').innerHTML  = message.time;
+      document.getElementById('placeholder-next-title').innerHTML  = message.n_title;
+      document.getElementById('placeholder-next-speaker').innerHTML  = "by: "+message.n_speaker;
+      document.getElementById('placeholder-next-time').innerHTML  = "@ "+message.n_time;
 
     };
   </script>
