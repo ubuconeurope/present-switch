@@ -21,7 +21,7 @@ The server should then start listening on port `3000`.
 Then: 
 ```
 1) Open your browser at http://localhost:3000/rooms/1/ (do not forget the last /)
-2) curl -X POST -H 'Content-Type: application/json'  "http://localhost:3000/rooms/1" -d '{"title": "Title Room 1", "speaker": "John Doe", "time": "15:00", "next": "Next title @ 16:00"}'
+2) curl -X POST -H 'Content-Type: application/json'  "http://localhost:3000/rooms/1" -d '{"room": "Master Room", "title": "Presentation Title", "speaker": "Speaker Name", "time": "00:01", "n_title": "This is the Title of the Next Presentation", "n_speaker": "Another Speaker", "n_time": "23:59"}'
 3) You may try with any other room number. They should stay independent
 ```
 

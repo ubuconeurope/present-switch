@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Ubuntu|Ubuntu+Condensed|Ubuntu+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Ubuntu+Condensed|Ubuntu+Mono:400,400i,700,700i|Ubuntu:300,300i,400,400i,500,500i,700,700i&display=swap&subset=latin-ext');
 
 body {
   font-family: 'Ubuntu', sans-serif;
@@ -181,20 +181,25 @@ code {
   list-style-type: none;
 }
 
-
-.starts-at {
+.room-info {
   position: fixed;
-  top: 0px; /*p has already a top*/
+  bottom: 15px;
   left: 15px;
-  font-size: 20px;
+  background-color: #2C001E99;
+  border-radius: 40px;
+  min-width: 300px;
+  max-width: 750px;
+  font-size: 22px;
+  text-align: left;
+  color: #ffffff;
+  line-height: 1.2; 
+}
+.room-info > p {
+  margin: 25px 25px 25px 100px;
+  text-indent: -75px;
+}
+.room-info table {
+  margin: 25px 25px 25px 25px;
+  font-size: 18px;
 }
 
-.next-presentation {
-  position: fixed;
-  max-width: 60%;
-  top: 0px; /*p has already a top*/
-  right: 15px;
-  text-align: right;
-  font-size: 20px;
-  color: #444
-}
