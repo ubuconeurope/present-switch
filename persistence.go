@@ -8,14 +8,14 @@ import (
 
 // Represents the current state of a RoomInfo.
 type RoomInfo struct {
-	ID             int // room number
-	RoomName       string
-	CurrentTitle   string
-	CurrentSpeaker string
-	CurrentTime    string
-	NextTitle      string
-	NextSpeaker    string
-	NextTime       string
+	ID             int    `json:"room_id"` // room number
+	RoomName       string `json:"room"`
+	CurrentTitle   string `json:"title"`
+	CurrentSpeaker string `json:"speaker"`
+	CurrentTime    string `json:"time"`
+	NextTitle      string `json:"n_title"`
+	NextSpeaker    string `json:"n_speaker"`
+	NextTime       string `json:"n_time"`
 }
 
 // InitDB creates a new DB object using filename as parameter
