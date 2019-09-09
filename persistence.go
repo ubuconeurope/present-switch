@@ -98,11 +98,11 @@ func ReadRoomInfoTable(db *sql.DB) []RoomInfo {
 	var result []RoomInfo
 	for rows.Next() {
 		item := RoomInfo{}
-		err2 := rows.Scan(&item.ID, &item.RoomName,
+		err = rows.Scan(&item.ID, &item.RoomName,
 			&item.CurrentTitle, &item.CurrentSpeaker, &item.CurrentTime,
 			&item.NextTitle, &item.NextSpeaker, &item.NextTime)
-		if err2 != nil {
-			panic(err2)
+		if err != nil {
+			panic(err)
 		}
 		result = append(result, item)
 	}
