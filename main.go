@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -10,9 +11,33 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/alexandrevicenzi/go-sse"
 )
+
+const dbFilename string = "presentswitch.db"
+
+var db *sql.DB
+
+func persistRoomInfo(message []byte, roomNumberStr string) error {
+
+	roomNumber, err := strconv.Atoi(roomNumberStr)
+	if err != nil {
+		return err
+	}
+
+	var roomInfo RoomInfo
+	if err = json.Unmarshal(message, &roomInfo); err != nil {
+		return err
+	}
+	roomInfo.ID = roomNumber
+	log.Println(roomInfo)
+
+	StoreItem(db, roomInfo)
+
+	return err
+}
 
 func handleRooms(h http.Handler, s *sse.Server) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -48,6 +73,16 @@ func handleRooms(h http.Handler, s *sse.Server) http.Handler {
 						return
 					}
 
+					// If there is a persisted entry for this room, use it
+					if roomInfo, err := ReadRoomInfo(db, roomNumber); err == nil {
+						if roomInfoJSON, err2 := json.Marshal(roomInfo); err2 == nil {
+							go func() {
+								time.Sleep(1000 * time.Millisecond) // FixMe: this is wrong, but works (occasionally)
+								s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(roomInfoJSON)))
+							}()
+						}
+					}
+
 					h.ServeHTTP(w, r2)
 				} else {
 					http.NotFound(w, r)
@@ -60,6 +95,9 @@ func handleRooms(h http.Handler, s *sse.Server) http.Handler {
 					return
 				}
 
+				err = persistRoomInfo(messageData, roomNumberStr)
+				if err != nil {
+					http.Error(w, err.Error(), 400)
 					return
 				}
 				s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(messageData)))
@@ -98,6 +136,10 @@ func main() {
 
 	// Register /events endpoint
 	http.Handle("/events/", s)
+
+	log.Println("Opening Database")
+	db = InitDB(dbFilename)
+	CreateTables(db)
 
 	log.Println("Listening at :3000")
 	http.ListenAndServe(":3000", nil)
