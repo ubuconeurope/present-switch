@@ -1,4 +1,4 @@
-package presentswitch
+package main
 
 import (
 	"io/ioutil"

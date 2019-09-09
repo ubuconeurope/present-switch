@@ -1,4 +1,4 @@
-package presentswitch
+package main
 
 import (
 	"database/sql"
@@ -73,11 +73,11 @@ func StoreItem(db *sql.DB, item RoomInfo) {
 	}
 	defer stmt.Close()
 
-	_, err2 := stmt.Exec(item.ID, item.RoomName,
+	_, err = stmt.Exec(item.ID, item.RoomName,
 		item.CurrentTitle, item.CurrentSpeaker, item.CurrentTime,
 		item.NextTitle, item.NextSpeaker, item.NextTime)
-	if err2 != nil {
-		panic(err2)
+	if err != nil {
+		panic(err)
 
 	}
 }
