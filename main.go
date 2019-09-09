@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/alexandrevicenzi/go-sse"
@@ -16,12 +18,19 @@ func handleRooms(h http.Handler, s *sse.Server) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Based on the implementation of the http.StripPrefix()
 
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println("ERROR: ", err)
+				http.Error(w, "Internal error", 500)
+			}
+		}()
+
 		re := regexp.MustCompile(`^(/rooms/([0-9]+))/?.*`) // 3 groups
 		reMatch := re.FindStringSubmatch(r.URL.Path)
 
 		if len(reMatch) == 3 {
 			prefix := reMatch[1]
-			roomNumber := reMatch[2]
+			roomNumberStr := reMatch[2]
 
 			switch r.Method {
 			case "GET", "HEAD":
@@ -32,19 +41,28 @@ func handleRooms(h http.Handler, s *sse.Server) http.Handler {
 					r2.URL = new(url.URL)
 					*r2.URL = *r.URL
 					r2.URL.Path = p
+
+					roomNumber, err := strconv.Atoi(roomNumberStr)
+					if err != nil {
+						http.Error(w, "Error: room number cannot be converted to int", 400)
+						return
+					}
+
 					h.ServeHTTP(w, r2)
 				} else {
 					http.NotFound(w, r)
 				}
 
 			case "POST", "PUT":
-				// curl -X POST "http://localhost:3000/rooms/1" -d '{"title": "Title Room 1", "speaker": "John Doe", "time": "15:00", "next": "Next title @ 16:00"}'
 				messageData, err := ioutil.ReadAll(r.Body)
 				if err != nil {
-					log.Println("Error: could not parse post body")
+					http.Error(w, "Error: could not parse json data", 400)
 					return
 				}
-				s.SendMessage("/events/room-"+roomNumber, sse.SimpleMessage(string(messageData)))
+
+					return
+				}
+				s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(messageData)))
 
 			}
 		} else {
