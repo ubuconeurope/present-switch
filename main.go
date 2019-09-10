@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 
 	"github.com/alexandrevicenzi/go-sse"
 )
@@ -13,37 +12,6 @@ import (
 const dbFilename string = "presentswitch.db"
 
 var db *sql.DB
-
-func handleRooms(h http.Handler, s *sse.Server) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Based on the implementation of the http.StripPrefix()
-
-		defer func() {
-			if err := recover(); err != nil {
-				log.Println("ERROR: ", err)
-				http.Error(w, "Internal error", http.StatusInternalServerError)
-			}
-		}()
-
-		re := regexp.MustCompile(`^(/rooms/([0-9]+))/?.*`) // 3 groups
-		reMatch := re.FindStringSubmatch(r.URL.Path)
-
-		if len(reMatch) == 3 {
-			prefix := reMatch[1]
-			roomNumberStr := reMatch[2]
-
-			switch r.Method {
-			case "GET", "HEAD":
-				handleRoomsGET(h, w, r, s, prefix, roomNumberStr)
-			case "POST", "PUT":
-				handleRoomsPOST(w, r, s, roomNumberStr)
-			}
-		} else {
-			http.NotFound(w, r)
-		}
-
-	})
-}
 
 func main() {
 	s := sse.NewServer(&sse.Options{
