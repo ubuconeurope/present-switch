@@ -46,7 +46,7 @@ func handleRooms(h http.Handler, s *sse.Server) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				log.Println("ERROR: ", err)
-				http.Error(w, "Internal error", 500)
+				http.Error(w, "Internal error", http.StatusInternalServerError)
 			}
 		}()
 
@@ -69,7 +69,7 @@ func handleRooms(h http.Handler, s *sse.Server) http.Handler {
 
 					roomNumber, err := strconv.Atoi(roomNumberStr)
 					if err != nil {
-						http.Error(w, "Error: room number cannot be converted to int", 400)
+						http.Error(w, "Error: room number cannot be converted to int", http.StatusBadRequest)
 						return
 					}
 
