@@ -27,9 +27,10 @@ func main() {
 		Logger: log.New(os.Stdout, "go-sse: ", log.Ldate|log.Ltime|log.Lshortfile),
 	})
 	defer s.Shutdown()
-
 	// Endpoint for static content and roomInfo updates
 	http.Handle("/rooms/", handleRooms(http.FileServer(http.Dir("html_template")), s))
+	// Get json with roominfo (sync)
+	http.Handle("/room-info/", handleRoomInfoSync(s))
 
 	// Endpoint for SSE events
 	http.Handle("/events/", s)

@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/alexandrevicenzi/go-sse"
 )
@@ -46,22 +45,6 @@ func handleRoomsGET(h http.Handler, w http.ResponseWriter, r *http.Request, s *s
 		r2.URL = new(url.URL)
 		*r2.URL = *r.URL
 		r2.URL.Path = p
-
-		roomNumber, err := strconv.Atoi(roomNumberStr)
-		if err != nil {
-			http.Error(w, "Error: room number cannot be converted to int", http.StatusBadRequest)
-			return
-		}
-
-		// If there is a persisted entry for this room, use it
-		if roomInfo, err := ReadRoomInfo(db, roomNumber); err == nil {
-			if roomInfoJSON, err2 := json.Marshal(roomInfo); err2 == nil {
-				go func() {
-					time.Sleep(1000 * time.Millisecond) // FixMe: this is wrong, but works (occasionally)
-					s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(roomInfoJSON)))
-				}()
-			}
-		}
 
 		h.ServeHTTP(w, r2)
 	} else {
@@ -112,5 +95,40 @@ func handleRooms(h http.Handler, s *sse.Server) http.Handler {
 			http.NotFound(w, r)
 		}
 
+	})
+}
+
+func handleRoomInfoSync(s *sse.Server) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println("ERROR: ", err)
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+			}
+		}()
+
+		re := regexp.MustCompile(`^(/room-info/([0-9]+))/?.*`) // 3 groups
+		reMatch := re.FindStringSubmatch(r.URL.Path)
+
+		if len(reMatch) == 3 {
+			// prefix := reMatch[1]
+			roomNumberStr := reMatch[2]
+
+			roomNumber, err := strconv.Atoi(roomNumberStr)
+			if err != nil {
+				http.Error(w, "Error: room number cannot be converted to int", http.StatusBadRequest)
+				return
+			}
+
+			// If there is a persisted entry for this room, use it
+			if roomInfo, err := ReadRoomInfo(db, roomNumber); err == nil {
+				if roomInfoJSON, err2 := json.Marshal(roomInfo); err2 == nil {
+					w.WriteHeader(200)
+					w.Header().Set("Content-Type", "application/json")
+					w.Write(roomInfoJSON)
+				}
+			}
+		}
 	})
 }

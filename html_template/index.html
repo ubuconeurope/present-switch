@@ -106,10 +106,9 @@ Sponsors - Gold
   </script>
   <script type="text/javascript">
     var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1]
-    es = new EventSource('/events/room-'+roomNumber);
-    es.onmessage = function (e) {
-      message = JSON.parse(e.data)
 
+    function updateTemplate(jsonData) {
+      message = JSON.parse(jsonData)
       document.getElementById('placeholder-room-name').innerHTML = message.room;
       document.getElementById('placeholder-current-title').innerHTML = message.title;
       document.getElementById('placeholder-current-speaker').innerHTML = message.speaker;
@@ -117,8 +116,23 @@ Sponsors - Gold
       document.getElementById('placeholder-next-title').innerHTML  = message.n_title;
       document.getElementById('placeholder-next-speaker').innerHTML  = "by: "+message.n_speaker;
       document.getElementById('placeholder-next-time').innerHTML  = "@ "+message.n_time;
+    }
 
+    // Update template with GET request (first time)
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            updateTemplate(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", "/room-info/"+roomNumber, true); // true for asynchronous 
+    xmlHttp.send(null);
+
+    // Update template with SSE
+    es = new EventSource('/events/room-'+roomNumber);
+    es.onmessage = function (e) {
+      updateTemplate(e.data)
     };
+
   </script>
 
 </html>
