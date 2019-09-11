@@ -19,6 +19,11 @@ type PresentationEvent struct {
 	Data interface{} `json:"data"`
 }
 
+// ControlEventField object for PresentationEvent.Data
+type ControlEventField struct {
+	Action string `json:"action"`
+}
+
 func persistRoomInfo(message []byte, roomNumberStr string) (RoomInfo, error) {
 
 	roomNumber, err := strconv.Atoi(roomNumberStr)
@@ -31,7 +36,7 @@ func persistRoomInfo(message []byte, roomNumberStr string) (RoomInfo, error) {
 		return RoomInfo{}, err
 	}
 	roomInfo.ID = roomNumber
-	log.Println(roomInfo)
+	log.Println("persisting ", roomInfo)
 
 	StoreItem(db, roomInfo)
 
@@ -80,7 +85,7 @@ func handleRoomsPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, room
 	s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(newEventStr)))
 }
 
-func handleAdminPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, roomNumberStr string) {
+func handleAdminUpdatePOST(w http.ResponseWriter, r *http.Request, s *sse.Server, roomNumberStr string) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Error: could not parse data", http.StatusBadRequest)
 		return
@@ -111,8 +116,21 @@ func handleAdminPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, room
 		http.Error(w, "Internal Server Error - marshal response", http.StatusInternalServerError)
 	}
 	s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(newEventStr)))
+}
 
-	http.Redirect(w, r, "/admin/"+roomNumberStr, http.StatusFound)
+func handleAdminControlPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, roomNumberStr string) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error: could not parse data", http.StatusBadRequest)
+		return
+	}
+
+	newEvent := PresentationEvent{"control", ControlEventField{r.FormValue("action")}}
+	newEventStr, err := json.Marshal(newEvent)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error - marshal response", http.StatusInternalServerError)
+	}
+	s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(newEventStr)))
 }
 
 func handleRooms(h http.Handler, s *sse.Server) http.Handler {
@@ -157,15 +175,22 @@ func handleAdmin(h http.Handler, s *sse.Server) http.Handler {
 			}
 		}()
 
-		re := regexp.MustCompile(`^(/admin/([0-9]+))/?.*`) // 3 groups
+		re := regexp.MustCompile(`^(/admin/([0-9]+))/?(.*)?`) // 4 groups
 		reMatch := re.FindStringSubmatch(r.URL.Path)
 
-		if len(reMatch) == 3 {
+		if len(reMatch) == 4 {
 			prefix := reMatch[1]
 			roomNumberStr := reMatch[2]
+			actionStr := reMatch[3]
 
 			switch r.Method {
 			case "GET", "HEAD":
+				// handle missing /
+				if r.URL.Path == "/admin/"+roomNumberStr {
+					http.Redirect(w, r, "/admin/"+roomNumberStr+"/", http.StatusFound)
+					return
+				}
+
 				if p := strings.TrimPrefix(r.URL.Path, prefix); len(p) < len(r.URL.Path) {
 					r2 := new(http.Request)
 					*r2 = *r
@@ -178,8 +203,19 @@ func handleAdmin(h http.Handler, s *sse.Server) http.Handler {
 					http.NotFound(w, r)
 				}
 			case "POST", "PUT":
-				// XXX: Implement this
-				handleAdminPOST(w, r, s, roomNumberStr)
+				switch actionStr {
+				case "update":
+					// XXX: Implement this
+					handleAdminUpdatePOST(w, r, s, roomNumberStr)
+				case "control":
+					handleAdminControlPOST(w, r, s, roomNumberStr)
+				default:
+					http.Error(w, "Invalid Action", http.StatusBadRequest)
+				}
+				// after handle the POST, redirect to GET
+				http.Redirect(w, r, "/admin/"+roomNumberStr+"/", http.StatusFound)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			}
 		} else {
 			http.NotFound(w, r)

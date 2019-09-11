@@ -14,7 +14,7 @@
       <input 
         id="form-previous-slide" 
         type="button" 
-        value="Previous Slide<br>(not working)"
+        value="Previous Slide"
         style="height:50px;width:200px" 
         onclick="sendEvent('previous');" 
       />
@@ -23,17 +23,31 @@
       <input 
         id="form-next-slide" 
         type="button" 
-        value="Next Slide<br>(not working)"
+        value="Next Slide"
         style="height:50px;width:200px" 
         onclick="sendEvent('next');" 
+      />
+    </td>
+    <td>
+      <input 
+        id="form-next-slide" 
+        type="button" 
+        value="Auto Loop (WIP)"
+        style="height:50px;width:200px" 
+        onclick="sendEvent('auto-loop');" 
       />
     </td>
   </tr>
 </table>
 
+<form id="controlForm" method="POST" action="control">
+  <input type="hidden" name="action" />
+</form>
+
+
 <br><br><br>
 
-<form id="myAdminForm" method="POST">
+<form id="updateForm" method="POST" action="update">
 <table>
   <tr>
     <td>Room:</td>
@@ -72,7 +86,6 @@
 
 </form>
 
-
 <script>
   var roomNumber = /.*\/admin\/([0-9]+).*/.exec(location)[1];
 
@@ -100,17 +113,14 @@
 
   function sendEvent(event_kind) {
     switch (event_kind){
-      case "previous":
-        break;
-      case "next":
-        break;
       case "submit":
-        // document.querySelectorAll("#myAdminForm input").forEach(function (item, index){
-        //   if (item.value == ""){
-        //     item.value = item.placeholder;
-        //   }
-        // })
-        document.getElementById('myAdminForm').submit();
+        document.getElementById('updateForm').submit();
+        break;
+      default:
+        cf = document.getElementById('controlForm');
+        cf.action.value = event_kind;
+        // This should be async request, not a submit. Should not refresh page
+        cf.submit();
         break;
     }
   }
