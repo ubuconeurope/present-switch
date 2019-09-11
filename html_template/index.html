@@ -105,24 +105,36 @@ Sponsors - Gold
     });
   </script>
   <script type="text/javascript">
-    var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1]
+    var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1];
 
-    function updateTemplate(jsonData) {
+    function updateTemplate(objData) {
+      document.getElementById('placeholder-room-name').innerHTML = objData.room;
+      document.getElementById('placeholder-current-title').innerHTML = objData.title;
+      document.getElementById('placeholder-current-speaker').innerHTML = objData.speaker;
+      document.getElementById('placeholder-current-time').innerHTML  = objData.time;
+      document.getElementById('placeholder-next-title').innerHTML  = objData.n_title;
+      document.getElementById('placeholder-next-speaker').innerHTML  = "by: "+objData.n_speaker;
+      document.getElementById('placeholder-next-time').innerHTML  = "@ "+objData.n_time;
+    }
+
+    function processPresentationEvent(jsonData){
       message = JSON.parse(jsonData)
-      document.getElementById('placeholder-room-name').innerHTML = message.room;
-      document.getElementById('placeholder-current-title').innerHTML = message.title;
-      document.getElementById('placeholder-current-speaker').innerHTML = message.speaker;
-      document.getElementById('placeholder-current-time').innerHTML  = message.time;
-      document.getElementById('placeholder-next-title').innerHTML  = message.n_title;
-      document.getElementById('placeholder-next-speaker').innerHTML  = "by: "+message.n_speaker;
-      document.getElementById('placeholder-next-time').innerHTML  = "@ "+message.n_time;
+      switch(message.kind){
+        case "room-info":
+          updateTemplate(message.data);
+          break;
+        default:
+          console.log("Unknown event kind: "+message.kind);
+      }
     }
 
     // Update template with GET request (first time)
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            updateTemplate(xmlHttp.responseText);
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+            objData = JSON.parse(xmlHttp.responseText);
+            updateTemplate(objData);
+        }
     }
     xmlHttp.open("GET", "/room-info/"+roomNumber, true); // true for asynchronous 
     xmlHttp.send(null);
@@ -132,6 +144,7 @@ Sponsors - Gold
     es.onmessage = function (e) {
       updateTemplate(e.data)
     };
+    
 
   </script>
 

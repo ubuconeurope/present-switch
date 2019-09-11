@@ -13,23 +13,29 @@ import (
 	"github.com/alexandrevicenzi/go-sse"
 )
 
-func persistRoomInfo(message []byte, roomNumberStr string) error {
+// PresentationEvent is a wrapper for a Data (RoomInfo os some kind of action)
+type PresentationEvent struct {
+	Kind string      `json:"kind"`
+	Data interface{} `json:"data"`
+}
+
+func persistRoomInfo(message []byte, roomNumberStr string) (RoomInfo, error) {
 
 	roomNumber, err := strconv.Atoi(roomNumberStr)
 	if err != nil {
-		return err
+		return RoomInfo{}, err
 	}
 
 	var roomInfo RoomInfo
 	if err = json.Unmarshal(message, &roomInfo); err != nil {
-		return err
+		return RoomInfo{}, err
 	}
 	roomInfo.ID = roomNumber
 	log.Println(roomInfo)
 
 	StoreItem(db, roomInfo)
 
-	return err
+	return roomInfo, err
 }
 
 func handleRoomsGET(h http.Handler, w http.ResponseWriter, r *http.Request, s *sse.Server, prefix, roomNumberStr string) {
@@ -59,12 +65,19 @@ func handleRoomsPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, room
 		return
 	}
 
-	err = persistRoomInfo(messageData, roomNumberStr)
+	roomInfo, err := persistRoomInfo(messageData, roomNumberStr)
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(messageData)))
+
+	newEvent := PresentationEvent{"room-info", roomInfo}
+	newEventStr, err := json.Marshal(newEvent)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error - marshal response", http.StatusInternalServerError)
+	}
+	s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(newEventStr)))
 }
 
 func handleRooms(h http.Handler, s *sse.Server) http.Handler {
