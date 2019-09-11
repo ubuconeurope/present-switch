@@ -28,7 +28,7 @@ func main() {
 	})
 	defer s.Shutdown()
 	// Endpoint for static content and roomInfo updates
-	http.Handle("/rooms/", handleRooms(http.FileServer(http.Dir("html_template")), s))
+	http.Handle("/rooms/", handleRooms(http.FileServer(http.Dir("templates/presentation")), s))
 	// Get json with roominfo (sync)
 	http.Handle("/room-info/", handleRoomInfoSync(s))
 
