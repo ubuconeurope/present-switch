@@ -128,6 +128,18 @@ Sponsors - Gold
       }
     }
 
+    function startEventSource(){
+      es = new EventSource('/events/room-'+roomNumber);
+      es.onmessage = function (e) {
+        processPresentationEvent(e.data);
+      };
+      es.onerror = function(e) {
+        console.log("EventSource failed. Trying to reconnect");
+        delete es;
+        setTimeout(function(){ startEventSource(); }, 5000);        
+      };
+    }
+
     // Update template with GET request (first time)
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
@@ -140,10 +152,7 @@ Sponsors - Gold
     xmlHttp.send(null);
 
     // Update template with SSE
-    es = new EventSource('/events/room-'+roomNumber);
-    es.onmessage = function (e) {
-      updateTemplate(e.data)
-    };
+    startEventSource();
     
 
   </script>
