@@ -40,11 +40,6 @@
   </tr>
 </table>
 
-<form id="controlForm" method="POST" action="control">
-  <input type="hidden" name="action" />
-</form>
-
-
 <br><br><br>
 
 <form id="updateForm" method="POST" action="update">
@@ -117,11 +112,10 @@
         document.getElementById('updateForm').submit();
         break;
       default:
-        cf = document.getElementById('controlForm');
-        cf.action.value = event_kind;
-        // This should be async request, not a submit. Should not refresh page
-        cf.submit();
-        break;
+        var request = new XMLHttpRequest();
+        request.open('POST', '/admin/'+roomNumber+'/control', true);
+        request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+        request.send("action="+encodeURIComponent(event_kind));
     }
   }
 
