@@ -6,7 +6,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// Represents the current state of a RoomInfo.
+// RoomInfo represents the current state of a RoomInfo.
 type RoomInfo struct {
 	ID             int    `json:"room_id"` // room number
 	RoomName       string `json:"room"`

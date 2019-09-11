@@ -61,7 +61,7 @@ func handleRoomsGET(h http.Handler, w http.ResponseWriter, r *http.Request, s *s
 func handleRoomsPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, roomNumberStr string) {
 	messageData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Error: could not parse json data", http.StatusBadRequest)
+		http.Error(w, "Error: could not parse data", http.StatusBadRequest)
 		return
 	}
 
@@ -78,6 +78,41 @@ func handleRoomsPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, room
 		http.Error(w, "Internal Server Error - marshal response", http.StatusInternalServerError)
 	}
 	s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(newEventStr)))
+}
+
+func handleAdminPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, roomNumberStr string) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error: could not parse data", http.StatusBadRequest)
+		return
+	}
+
+	roomNumber, err := strconv.Atoi(roomNumberStr)
+	if err != nil {
+		http.Error(w, "Error: room number cannot be converted to int", http.StatusBadRequest)
+		return
+	}
+
+	roomInfo := RoomInfo{
+		roomNumber,
+		r.FormValue("room-name"),
+		r.FormValue("current-title"),
+		r.FormValue("current-speaker"),
+		r.FormValue("current-time"),
+		r.FormValue("next-title"),
+		r.FormValue("next-speaker"),
+		r.FormValue("next-time"),
+	}
+	StoreItem(db, roomInfo)
+
+	newEvent := PresentationEvent{"room-info", roomInfo}
+	newEventStr, err := json.Marshal(newEvent)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error - marshal response", http.StatusInternalServerError)
+	}
+	s.SendMessage("/events/room-"+roomNumberStr, sse.SimpleMessage(string(newEventStr)))
+
+	http.Redirect(w, r, "/admin/"+roomNumberStr, http.StatusFound)
 }
 
 func handleRooms(h http.Handler, s *sse.Server) http.Handler {
@@ -103,6 +138,48 @@ func handleRooms(h http.Handler, s *sse.Server) http.Handler {
 				handleRoomsGET(h, w, r, s, prefix, roomNumberStr)
 			case "POST", "PUT":
 				handleRoomsPOST(w, r, s, roomNumberStr)
+			}
+		} else {
+			http.NotFound(w, r)
+		}
+
+	})
+}
+
+func handleAdmin(h http.Handler, s *sse.Server) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Based on the implementation of the http.StripPrefix()
+
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println("ERROR: ", err)
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+			}
+		}()
+
+		re := regexp.MustCompile(`^(/admin/([0-9]+))/?.*`) // 3 groups
+		reMatch := re.FindStringSubmatch(r.URL.Path)
+
+		if len(reMatch) == 3 {
+			prefix := reMatch[1]
+			roomNumberStr := reMatch[2]
+
+			switch r.Method {
+			case "GET", "HEAD":
+				if p := strings.TrimPrefix(r.URL.Path, prefix); len(p) < len(r.URL.Path) {
+					r2 := new(http.Request)
+					*r2 = *r
+					r2.URL = new(url.URL)
+					*r2.URL = *r.URL
+					r2.URL.Path = p
+
+					h.ServeHTTP(w, r2)
+				} else {
+					http.NotFound(w, r)
+				}
+			case "POST", "PUT":
+				// XXX: Implement this
+				handleAdminPOST(w, r, s, roomNumberStr)
 			}
 		} else {
 			http.NotFound(w, r)

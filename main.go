@@ -27,6 +27,9 @@ func main() {
 		Logger: log.New(os.Stdout, "go-sse: ", log.Ldate|log.Ltime|log.Lshortfile),
 	})
 	defer s.Shutdown()
+
+	// Endpoint for manual management for remote presentations
+	http.Handle("/admin/", handleAdmin(http.FileServer(http.Dir("templates/admin")), s))
 	// Endpoint for static content and roomInfo updates
 	http.Handle("/rooms/", handleRooms(http.FileServer(http.Dir("templates/presentation")), s))
 	// Get json with roominfo (sync)

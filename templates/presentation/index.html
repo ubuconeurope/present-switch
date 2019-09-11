@@ -117,11 +117,31 @@ Sponsors - Gold
       document.getElementById('placeholder-next-time').innerHTML  = "@ "+objData.n_time;
     }
 
+    
+    function moveSlides(objData) {
+      switch(objData.action){
+        case "next":
+          slideshow.gotoNextSlide();
+          break;
+        case "previous":
+          slideshow.gotoPreviousSlide();
+          break;
+        case "go-to":
+          slideshow.gotoSlide(objData.slide);
+          break;
+        default:
+          console.log("Unknown event kind: "+message.kind);
+      }
+    }
+
     function processPresentationEvent(jsonData){
       message = JSON.parse(jsonData)
       switch(message.kind){
         case "room-info":
           updateTemplate(message.data);
+          break;
+        case "move-slides":
+          moveSlides(message.data);
           break;
         default:
           console.log("Unknown event kind: "+message.kind);
@@ -143,7 +163,7 @@ Sponsors - Gold
     // Update template with GET request (first time)
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+        if (xmlHttp.readyState == XMLHttpRequest.DONE && xmlHttp.status == 200){
             objData = JSON.parse(xmlHttp.responseText);
             updateTemplate(objData);
         }
