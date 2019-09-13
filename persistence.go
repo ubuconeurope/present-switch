@@ -54,7 +54,7 @@ func StoreItem(db *bolt.DB, item RoomInfo) {
 
 // ReadRoomInfoTable reads all rows in the room_info table
 func ReadRoomInfoTable(db *bolt.DB) (map[int]RoomInfo, error) {
-	tx, err := db.Begin(true)
+	tx, err := db.Begin(false)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func ReadRoomInfo(db *bolt.DB, id int) (RoomInfo, error) {
 
 	roomInfoKey := strconv.Itoa(id)
 
-	tx, err := db.Begin(true)
+	tx, err := db.Begin(false)
 	if err != nil {
 		return RoomInfo{}, err
 	}
