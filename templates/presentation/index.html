@@ -106,6 +106,7 @@ Sponsors - Gold
   </script>
   <script type="text/javascript">
     var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1];
+    var isAutoLooping = true;
 
     function updateTemplate(objData) {
       document.getElementById('placeholder-room-name').innerHTML = objData.room;
@@ -128,6 +129,9 @@ Sponsors - Gold
           break;
         case "go-to":
           slideshow.gotoSlide(objData.slide);
+          break;
+        case "loop":
+          isAutoLooping = !isAutoLooping;
           break;
         default:
           console.log("Unknown event kind: "+message.kind);
@@ -174,7 +178,21 @@ Sponsors - Gold
     // Update template with SSE
     startEventSource();
     
-
+    // Loop through slides
+    function slideshowCarousel(varObject) {
+      var slideCount = varObject.getSlideCount()-1;
+      var currentSlide = varObject.getCurrentSlideIndex();
+      
+      // if slideInterval == 0, Loop is disabled
+      if (isAutoLooping){
+        // if the slideshow is on the last slide, go back to the first slide; if not, call gotoNextSlide();
+        if (currentSlide == slideCount) {
+          varObject.gotoFirstSlide();
+        }
+        else { varObject.gotoNextSlide(); }
+      }
+    }
+    setInterval(function () {slideshowCarousel(slideshow)}, 5000);
   </script>
 
 </html>

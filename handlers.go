@@ -205,7 +205,6 @@ func handleAdmin(h http.Handler, s *sse.Server) http.Handler {
 			case "POST", "PUT":
 				switch actionStr {
 				case "update":
-					// XXX: Implement this
 					handleAdminUpdatePOST(w, r, s, roomNumberStr)
 				case "control":
 					handleAdminControlPOST(w, r, s, roomNumberStr)
