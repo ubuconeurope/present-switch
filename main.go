@@ -1,17 +1,17 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/alexandrevicenzi/go-sse"
+	bolt "go.etcd.io/bbolt"
 )
 
 const dbFilename string = "presentswitch.db"
 
-var db *sql.DB
+var db *bolt.DB
 
 func main() {
 
@@ -43,11 +43,10 @@ func main() {
 
 	log.Println("Opening Database")
 	db = InitDB(dbFilename)
-	CreateTables(db)
 
 	log.Println("Listening at :3000")
 	err := http.ListenAndServe(":3000", nil)
 	if err != nil {
 		log.Println("ERROR: ", err)
-}
+	}
 }
