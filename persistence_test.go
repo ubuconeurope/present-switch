@@ -8,7 +8,7 @@ import (
 // All tests in the same tests because I need state and it is easier
 func TestAllPersistence(t *testing.T) {
 	const dbpath = "foo.db"
-	var readItems []RoomInfo
+	var readItems map[int]RoomInfo
 	var (
 		readSingleItem RoomInfo
 		err            error
@@ -19,14 +19,18 @@ func TestAllPersistence(t *testing.T) {
 	defer db.Close()
 	defer os.Remove(dbpath)
 
-	// test 1 - create tables
-	CreateTables(db)
-	t.Log("TestAllPersistence - TEST1 - CreateTables - OK")
+	// // test 1 - create tables
+	// CreateTables(db)
+	// t.Log("TestAllPersistence - TEST1 - CreateTables - OK")
 
 	// test 2 - insert data
 	StoreItem(db, RoomInfo{1, "Room1", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime"})
 
-	readItems = ReadRoomInfoTable(db)
+	readItems, err = ReadRoomInfoTable(db)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+	}
 	if 1 != len(readItems) {
 		t.Errorf("Number of rows did not match the expected number 1")
 	}
@@ -36,7 +40,11 @@ func TestAllPersistence(t *testing.T) {
 	StoreItem(db, RoomInfo{3, "Room4", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime"})
 	StoreItem(db, RoomInfo{4, "Room4", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime"})
 
-	readItems = ReadRoomInfoTable(db)
+	readItems, err = ReadRoomInfoTable(db)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+	}
 	if 4 != len(readItems) {
 		t.Errorf("Number of rows did not match the expected number 1")
 	}
@@ -57,7 +65,7 @@ func TestAllPersistence(t *testing.T) {
 	readSingleItem, err = ReadRoomInfo(db, 99)
 	if err != nil {
 		// simple error is nice here.
-		if err.Error() != "sql: no rows in result set" {
+		if err.Error() != "unexpected end of JSON input" {
 			t.Error("Unexpected error: ", err)
 		}
 	}

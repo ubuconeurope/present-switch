@@ -1,12 +1,15 @@
 package main
 
 import (
-	"database/sql"
+	"encoding/json"
+	"log"
+	"strconv"
+	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	bolt "go.etcd.io/bbolt"
 )
 
-// Represents the current state of a RoomInfo.
+// RoomInfo represents the current state of a RoomInfo.
 type RoomInfo struct {
 	ID             int    `json:"room_id"` // room number
 	RoomName       string `json:"room"`
@@ -19,113 +22,80 @@ type RoomInfo struct {
 }
 
 // InitDB creates a new DB object using filename as parameter
-func InitDB(filepath string) *sql.DB {
-	db, err := sql.Open("sqlite3", filepath)
+func InitDB(filepath string) *bolt.DB {
+	db, err := bolt.Open(filepath, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		panic(err)
 	}
 	if db == nil {
 		panic("db nil")
 	}
+
 	return db
 }
 
-// CreateTables create all tables needed.
-func CreateTables(db *sql.DB) {
-	// create table if not exists
-	sqlTable := `
-	CREATE TABLE IF NOT EXISTS room_info(
-		id INTEGER PRIMARY KEY,
-		room_name TEXT NOT NULL,
-		current_title TEXT NOT NULL,
-		current_speaker TEXT NOT NULL,
-		current_time TEXT NOT NULL,
-		next_title TEXT NOT NULL,
-		next_speaker TEXT NOT NULL,
-		next_time TEXT NOT NULL
-	);
-	`
-
-	_, err := db.Exec(sqlTable)
-	if err != nil {
-		panic(err)
-	}
-}
-
 // StoreItem stores multiple items
-func StoreItem(db *sql.DB, item RoomInfo) {
-	sqlAdditem := `
-	INSERT OR REPLACE INTO room_info(
-		id,
-		room_name,
-		current_title,
-		current_speaker,
-		current_time,
-		next_title,
-		next_speaker,
-		next_time
-	) values(?, ?, ?, ?, ?, ?, ?, ?)
-	`
+func StoreItem(db *bolt.DB, item RoomInfo) {
 
-	stmt, err := db.Prepare(sqlAdditem)
+	roomInfoKey := strconv.Itoa(item.ID)
+	roomInfoValue, err := json.Marshal(item)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
-	defer stmt.Close()
 
-	_, err = stmt.Exec(item.ID, item.RoomName,
-		item.CurrentTitle, item.CurrentSpeaker, item.CurrentTime,
-		item.NextTitle, item.NextSpeaker, item.NextTime)
-	if err != nil {
-		panic(err)
-
-	}
+	db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte("room_info"))
+		if err != nil {
+			return err
+		}
+		return b.Put([]byte(roomInfoKey), []byte(roomInfoValue))
+	})
 }
 
 // ReadRoomInfoTable reads all rows in the room_info table
-func ReadRoomInfoTable(db *sql.DB) []RoomInfo {
-	sqlReadall := `
-	SELECT * FROM room_info
-	ORDER BY id DESC
-	`
-
-	rows, err := db.Query(sqlReadall)
+func ReadRoomInfoTable(db *bolt.DB) (map[int]RoomInfo, error) {
+	tx, err := db.Begin(true)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	defer rows.Close()
+	defer tx.Rollback()
 
-	var result []RoomInfo
-	for rows.Next() {
-		item := RoomInfo{}
-		err = rows.Scan(&item.ID, &item.RoomName,
-			&item.CurrentTitle, &item.CurrentSpeaker, &item.CurrentTime,
-			&item.NextTitle, &item.NextSpeaker, &item.NextTime)
-		if err != nil {
-			panic(err)
+	roomInfoArray := make(map[int]RoomInfo)
+
+	b := tx.Bucket([]byte("room_info"))
+	c := b.Cursor()
+
+	for k, v := c.First(); k != nil; k, v = c.Next() {
+		roomInfo := RoomInfo{}
+		if err = json.Unmarshal(v, &roomInfo); err != nil {
+			return nil, err
 		}
-		result = append(result, item)
+
+		roomInfoArray[roomInfo.ID] = roomInfo
 	}
-	return result
+
+	return roomInfoArray, nil
+
 }
 
 // ReadRoomInfo read one row, with the row ID
-func ReadRoomInfo(db *sql.DB, id int) (RoomInfo, error) {
-	sqlRead := `
-	SELECT * FROM room_info
-	WHERE id = ?
-	`
+func ReadRoomInfo(db *bolt.DB, id int) (RoomInfo, error) {
 
-	stmt, err := db.Prepare(sqlRead)
+	roomInfoKey := strconv.Itoa(id)
+
+	tx, err := db.Begin(true)
 	if err != nil {
-		panic(err)
+		return RoomInfo{}, err
 	}
-	defer stmt.Close()
+	defer tx.Rollback()
 
-	var item RoomInfo
-	err = stmt.QueryRow(id).Scan(&item.ID, &item.RoomName,
-		&item.CurrentTitle, &item.CurrentSpeaker, &item.CurrentTime,
-		&item.NextTitle, &item.NextSpeaker, &item.NextTime)
+	bkt := tx.Bucket([]byte("room_info"))
+	v := bkt.Get([]byte(roomInfoKey))
 
-	return item, err
+	var roomInfo RoomInfo
+	if err = json.Unmarshal(v, &roomInfo); err != nil {
+		return RoomInfo{}, err
+	}
+
+	return roomInfo, err
 }

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Ubucon Europe 2019 Presentations - Admin</title>
+  <meta charset="utf-8">
+</head>
+
+<body>
+
+<table>
+  <tr>
+    <td>
+      <input 
+        id="form-previous-slide" 
+        type="button" 
+        value="Previous Slide"
+        style="height:50px;width:200px" 
+        onclick="sendEvent('previous');" 
+      />
+    </td>
+    <td>
+      <input 
+        id="form-next-slide" 
+        type="button" 
+        value="Next Slide"
+        style="height:50px;width:200px" 
+        onclick="sendEvent('next');" 
+      />
+    </td>
+    <td>
+      <input 
+        id="form-next-slide" 
+        type="button" 
+        value="Auto Loop (WIP)"
+        style="height:50px;width:200px" 
+        onclick="sendEvent('auto-loop');" 
+      />
+    </td>
+  </tr>
+</table>
+
+<br><br><br>
+
+<form id="updateForm" method="POST" action="update">
+<table>
+  <tr>
+    <td>Room:</td>
+    <td><input id="form-room-name" type="text" name="room-name"></input></td>
+  </tr>
+  <tr>
+    <td>Current Title:</td>
+    <td><input id="form-current-title" type="text" name="current-title"></input></td>
+  </tr>
+  <tr>
+    <td>Current Speaker:</td>
+    <td><input id="form-current-speaker" type="text" name="current-speaker"></input></td>
+  </tr>
+  <tr>
+    <td>Current Time:</td>
+    <td><input id="form-current-time" type="text" name="current-time"></input></td>
+  </tr>
+  <tr>
+    <td>Next Title:</td>
+    <td><input id="form-next-title" type="text" name="next-title"></input></td>
+  </tr>
+  <tr>
+    <td>Next Speaker:</td>
+    <td><input id="form-next-speaker" type="text" name="next-speaker"></input></td>
+  </tr>
+  <tr>
+    <td>Next Time:</td>
+    <td><input id="form-next-time" type="text" name="next-time"></input></td>
+  </tr>
+  <tr>
+    <td colspan="2" style="text-align: center">
+      <input id="form-update-button" type="button" value="==== Update ====" onclick="sendEvent('submit');" />
+    </td>
+  </tr>
+</table>
+
+</form>
+
+<script>
+  var roomNumber = /.*\/admin\/([0-9]+).*/.exec(location)[1];
+
+  function updateTemplate(objData) {
+    document.getElementById('form-room-name').value = objData.room;
+    document.getElementById('form-current-title').value = objData.title;
+    document.getElementById('form-current-speaker').value = objData.speaker;
+    document.getElementById('form-current-time').value  = objData.time;
+    document.getElementById('form-next-title').value  = objData.n_title;
+    document.getElementById('form-next-speaker').value  = objData.n_speaker;
+    document.getElementById('form-next-time').value  = objData.n_time;
+  }
+
+  // Update template with GET request (first time)
+  var xmlHttp = new XMLHttpRequest();
+  xmlHttp.onreadystatechange = function() { 
+      if (xmlHttp.readyState == XMLHttpRequest.DONE && xmlHttp.status == 200){
+          objData = JSON.parse(xmlHttp.responseText);
+          updateTemplate(objData);
+      }
+  }
+  xmlHttp.open("GET", "/room-info/"+roomNumber, true); // true for asynchronous 
+  xmlHttp.send(null);
+
+
+  function sendEvent(event_kind) {
+    switch (event_kind){
+      case "submit":
+        document.getElementById('updateForm').submit();
+        break;
+      default:
+        var request = new XMLHttpRequest();
+        request.open('POST', '/admin/'+roomNumber+'/control', true);
+        request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+        request.send("action="+encodeURIComponent(event_kind));
+    }
+  }
+
+</script>
+
+</body>
