@@ -14,6 +14,9 @@ const dbFilename string = "presentswitch.db"
 var db *sql.DB
 
 func main() {
+
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	s := sse.NewServer(&sse.Options{
 		Headers: map[string]string{
 			"Access-Control-Allow-Origin":  "*",
