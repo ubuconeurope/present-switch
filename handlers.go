@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -174,6 +175,17 @@ func handleAdmin(h http.Handler, s *sse.Server) http.Handler {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 			}
 		}()
+
+		// If both AUTH_USERNAME and AUTH_PASSWORD env variables are defined,
+		//     ensure BasicAuth
+		if os.Getenv("AUTH_USERNAME") != "" && os.Getenv("AUTH_PASSWORD") != "" {
+			username, password, ok := r.BasicAuth()
+			if !ok || username != os.Getenv("AUTH_USERNAME") || password != os.Getenv("AUTH_PASSWORD") {
+				w.Header().Set("WWW-Authenticate", "Basic realm=admin")
+				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+				return
+			}
+		}
 
 		re := regexp.MustCompile(`^(/admin/([0-9]+))/?(.*)?`) // 4 groups
 		reMatch := re.FindStringSubmatch(r.URL.Path)
