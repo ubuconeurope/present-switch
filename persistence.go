@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"strconv"
 	"time"
@@ -25,6 +26,7 @@ type RoomInfo struct {
 func InitDB(filepath string) *bolt.DB {
 	db, err := bolt.Open(filepath, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
+		log.Println("Error InitDB")
 		panic(err)
 	}
 	if db == nil {
@@ -90,6 +92,9 @@ func ReadRoomInfo(db *bolt.DB, id int) (RoomInfo, error) {
 	defer tx.Rollback()
 
 	bkt := tx.Bucket([]byte("room_info"))
+	if bkt == nil {
+		return RoomInfo{}, errors.New("No room_info bucket available (database is empty)")
+	}
 	v := bkt.Get([]byte(roomInfoKey))
 
 	var roomInfo RoomInfo
