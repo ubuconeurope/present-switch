@@ -65,6 +65,18 @@ func handleRoomsGET(h http.Handler, w http.ResponseWriter, r *http.Request, s *s
 }
 
 func handleRoomsPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, roomNumberStr string) {
+
+	// If both ADMIN_AUTH_USERNAME and ADMIN_AUTH_PASSWORD env variables are defined,
+	//     ensure BasicAuth
+	if os.Getenv("ROOMS_AUTH_USERNAME") != "" && os.Getenv("ROOMS_AUTH_PASSWORD") != "" {
+		username, password, ok := r.BasicAuth()
+		if !ok || username != os.Getenv("ROOMS_AUTH_USERNAME") || password != os.Getenv("ROOMS_AUTH_PASSWORD") {
+			w.Header().Set("WWW-Authenticate", "Basic realm=rooms")
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			return
+		}
+	}
+
 	messageData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Error: could not parse data", http.StatusBadRequest)
@@ -176,11 +188,11 @@ func handleAdmin(h http.Handler, s *sse.Server) http.Handler {
 			}
 		}()
 
-		// If both AUTH_USERNAME and AUTH_PASSWORD env variables are defined,
+		// If both ADMIN_AUTH_USERNAME and ADMIN_AUTH_PASSWORD env variables are defined,
 		//     ensure BasicAuth
-		if os.Getenv("AUTH_USERNAME") != "" && os.Getenv("AUTH_PASSWORD") != "" {
+		if os.Getenv("ADMIN_AUTH_USERNAME") != "" && os.Getenv("ADMIN_AUTH_PASSWORD") != "" {
 			username, password, ok := r.BasicAuth()
-			if !ok || username != os.Getenv("AUTH_USERNAME") || password != os.Getenv("AUTH_PASSWORD") {
+			if !ok || username != os.Getenv("ADMIN_AUTH_USERNAME") || password != os.Getenv("ADMIN_AUTH_PASSWORD") {
 				w.Header().Set("WWW-Authenticate", "Basic realm=admin")
 				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 				return

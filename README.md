@@ -33,6 +33,10 @@ Via curl:
 curl -X POST -H 'Content-Type: application/json'  "http://localhost:3000/rooms/1" -d '{"room": "Master Room", "title": "Presentation Title", "speaker": "Speaker Name", "time": "00:01", "n_title": "This is the Title of the Next Presentation", "n_speaker": "Another Speaker", "n_time": "23:59"}'
 ```
 
+If you set the environment variables `ROOMS_AUTH_USERNAME` and `ROOMS_AUTH_PASSWORD`, 
+this admin pages are protected with BasicAuth
+
+
 ## Admin page
 
 You may update RoomInfo using the `admin` interface (instead of curl)
@@ -40,7 +44,7 @@ You may admin the room #1 through http://localhost:3000/admin/1/
 
 You may update all information available through the API (curl) and control the slides.
 
-If you set the environment variables `AUTH_USERNAME` and `AUTH_PASSWORD`, 
+If you set the environment variables `ADMIN_AUTH_USERNAME` and `ADMIN_AUTH_PASSWORD`, 
 this admin pages are protected with BasicAuth
 
 
