@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -64,6 +65,18 @@ func handleRoomsGET(h http.Handler, w http.ResponseWriter, r *http.Request, s *s
 }
 
 func handleRoomsPOST(w http.ResponseWriter, r *http.Request, s *sse.Server, roomNumberStr string) {
+
+	// If both ADMIN_AUTH_USERNAME and ADMIN_AUTH_PASSWORD env variables are defined,
+	//     ensure BasicAuth
+	if os.Getenv("ROOMS_AUTH_USERNAME") != "" && os.Getenv("ROOMS_AUTH_PASSWORD") != "" {
+		username, password, ok := r.BasicAuth()
+		if !ok || username != os.Getenv("ROOMS_AUTH_USERNAME") || password != os.Getenv("ROOMS_AUTH_PASSWORD") {
+			w.Header().Set("WWW-Authenticate", "Basic realm=rooms")
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			return
+		}
+	}
+
 	messageData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Error: could not parse data", http.StatusBadRequest)
@@ -174,6 +187,17 @@ func handleAdmin(h http.Handler, s *sse.Server) http.Handler {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 			}
 		}()
+
+		// If both ADMIN_AUTH_USERNAME and ADMIN_AUTH_PASSWORD env variables are defined,
+		//     ensure BasicAuth
+		if os.Getenv("ADMIN_AUTH_USERNAME") != "" && os.Getenv("ADMIN_AUTH_PASSWORD") != "" {
+			username, password, ok := r.BasicAuth()
+			if !ok || username != os.Getenv("ADMIN_AUTH_USERNAME") || password != os.Getenv("ADMIN_AUTH_PASSWORD") {
+				w.Header().Set("WWW-Authenticate", "Basic realm=admin")
+				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+				return
+			}
+		}
 
 		re := regexp.MustCompile(`^(/admin/([0-9]+))/?(.*)?`) // 4 groups
 		reMatch := re.FindStringSubmatch(r.URL.Path)
