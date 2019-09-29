@@ -110,6 +110,8 @@ func handleAdminUpdatePOST(w http.ResponseWriter, r *http.Request, s *sse.Server
 		return
 	}
 
+	autoLoopSec, _ := strconv.Atoi(r.FormValue("auto-loop-sec"))
+
 	roomInfo := RoomInfo{
 		roomNumber,
 		r.FormValue("room-name"),
@@ -119,6 +121,7 @@ func handleAdminUpdatePOST(w http.ResponseWriter, r *http.Request, s *sse.Server
 		r.FormValue("next-title"),
 		r.FormValue("next-speaker"),
 		r.FormValue("next-time"),
+		autoLoopSec,
 	}
 	StoreItem(db, roomInfo)
 

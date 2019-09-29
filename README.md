@@ -30,7 +30,7 @@ Then, you may change the information with the API via curl, or via [Admin page](
 Via curl:
 
 ```
-curl -X POST -H 'Content-Type: application/json'  "http://localhost:3000/rooms/1" -d '{"room": "Master Room", "title": "Presentation Title", "speaker": "Speaker Name", "time": "00:01", "n_title": "This is the Title of the Next Presentation", "n_speaker": "Another Speaker", "n_time": "23:59"}'
+curl -X POST -H 'Content-Type: application/json'  "http://localhost:3000/rooms/1" -d '{"room": "Master Room", "title": "Presentation Title", "speaker": "Speaker Name", "time": "00:01", "n_title": "This is the Title of the Next Presentation", "n_speaker": "Another Speaker", "n_time": "23:59", "auto-loop-sec": 5}'
 ```
 
 If you set the environment variables `ROOMS_AUTH_USERNAME` and `ROOMS_AUTH_PASSWORD`, 

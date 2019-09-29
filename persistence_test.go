@@ -24,7 +24,7 @@ func TestAllPersistence(t *testing.T) {
 	// t.Log("TestAllPersistence - TEST1 - CreateTables - OK")
 
 	// test 2 - insert data
-	StoreItem(db, RoomInfo{1, "Room1", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime"})
+	StoreItem(db, RoomInfo{1, "Room1", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime", 0})
 
 	readItems, err = ReadRoomInfoTable(db)
 	if err != nil {
@@ -36,9 +36,9 @@ func TestAllPersistence(t *testing.T) {
 	}
 
 	// test 2.1 - insert more data
-	StoreItem(db, RoomInfo{2, "Room2", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime"})
-	StoreItem(db, RoomInfo{3, "Room4", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime"})
-	StoreItem(db, RoomInfo{4, "Room4", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime"})
+	StoreItem(db, RoomInfo{2, "Room2", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime", 0})
+	StoreItem(db, RoomInfo{3, "Room4", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime", 0})
+	StoreItem(db, RoomInfo{4, "Room4", "CurrTitle", "CurrSpeaker", "CurrTime", "NextTitle", "NextSpeaker", "NextTime", 0})
 
 	readItems, err = ReadRoomInfoTable(db)
 	if err != nil {
@@ -72,7 +72,7 @@ func TestAllPersistence(t *testing.T) {
 	t.Log("TestAllPersistence - TEST4 - retrieve unexisting data - ", err)
 
 	// test 5 - update row
-	StoreItem(db, RoomInfo{2, "Room2", "Another Title Here", "", "", "", "", ""})
+	StoreItem(db, RoomInfo{2, "Room2", "Another Title Here", "", "", "", "", "", 0})
 	readSingleItem, err = ReadRoomInfo(db, 2)
 	if err != nil {
 		t.Error(err)

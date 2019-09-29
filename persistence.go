@@ -20,6 +20,7 @@ type RoomInfo struct {
 	NextTitle      string `json:"n_title"`
 	NextSpeaker    string `json:"n_speaker"`
 	NextTime       string `json:"n_time"`
+	AutoLoopSec    int    `json:"auto_loop_sec"`
 }
 
 // InitDB creates a new DB object using filename as parameter

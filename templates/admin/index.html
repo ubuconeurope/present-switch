@@ -73,6 +73,10 @@
     <td><input id="form-next-time" type="text" name="next-time"></input></td>
   </tr>
   <tr>
+    <td>AutoLoop slides (seconds):</td>
+    <td><input id="form-auto-loop-sec" type="number" name="auto-loop-sec"></input></td>
+  </tr>
+  <tr>
     <td colspan="2" style="text-align: center">
       <input id="form-update-button" type="button" value="==== Update ====" onclick="sendEvent('submit');" />
     </td>
@@ -92,6 +96,7 @@
     document.getElementById('form-next-title').value  = objData.n_title;
     document.getElementById('form-next-speaker').value  = objData.n_speaker;
     document.getElementById('form-next-time').value  = objData.n_time;
+    document.getElementById('form-auto-loop-sec').value  = objData.auto_loop_sec;
   }
 
   // Update template with GET request (first time)
@@ -111,6 +116,12 @@
       case "submit":
         document.getElementById('updateForm').submit();
         break;
+      case "loop":
+        if (document.getElementById('form-auto-loop-sec').value == 0) {
+          document.getElementById('form-auto-loop-sec').value = 5;
+        } else {
+          document.getElementById('form-auto-loop-sec').value = 0;
+        }
       default:
         var request = new XMLHttpRequest();
         request.open('POST', '/admin/'+roomNumber+'/control', true);
