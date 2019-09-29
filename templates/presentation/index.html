@@ -61,6 +61,7 @@ name: main-title
 ]
 ]
 
+<div id="placeholder-auto-loop-sec" style="display: none;">5</div>
 
 ---
 
@@ -106,7 +107,7 @@ Sponsors - Gold
   </script>
   <script type="text/javascript">
     var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1];
-    var isAutoLooping = true;
+    var isAutoLooping = false;
 
     function updateTemplate(objData) {
       document.getElementById('placeholder-room-name').innerHTML = objData.room;
@@ -116,6 +117,9 @@ Sponsors - Gold
       document.getElementById('placeholder-next-title').innerHTML  = objData.n_title;
       document.getElementById('placeholder-next-speaker').innerHTML  = "by: "+objData.n_speaker;
       document.getElementById('placeholder-next-time').innerHTML  = "@ "+objData.n_time;
+      document.getElementById('placeholder-auto-loop-sec').innerHTML  = "@ "+objData.auto_loop_sec;
+      
+      objData.auto_loop_sec == 0 ? isAutoLooping = false : isAutoLooping = true;
     }
 
     
@@ -183,7 +187,6 @@ Sponsors - Gold
       var slideCount = varObject.getSlideCount()-1;
       var currentSlide = varObject.getCurrentSlideIndex();
       
-      // if slideInterval == 0, Loop is disabled
       if (isAutoLooping){
         // if the slideshow is on the last slide, go back to the first slide; if not, call gotoNextSlide();
         if (currentSlide == slideCount) {
@@ -192,7 +195,7 @@ Sponsors - Gold
         else { varObject.gotoNextSlide(); }
       }
     }
-    setInterval(function () {slideshowCarousel(slideshow)}, 5000);
+    setInterval(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
   </script>
 
 </html>
