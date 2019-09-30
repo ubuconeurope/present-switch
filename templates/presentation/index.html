@@ -120,6 +120,24 @@ Sponsors - Gold
       document.getElementById('placeholder-auto-loop-sec').innerHTML  = "@ "+objData.auto_loop_sec;
       
       objData.auto_loop_sec == 0 ? isAutoLooping = false : isAutoLooping = true;
+      // Resize the title to fit the slide
+      j = objData.title.length
+      switch (true) {
+        case (j>75):
+            document.getElementById('placeholder-current-title').style.fontSize = "50px";
+            document.getElementById('placeholder-current-title').style.lineHeight = "1.1";
+            document.getElementById('placeholder-current-title').parentElement.style.lineHeight = "1.1";
+            break;
+        case (j>55):
+            document.getElementById('placeholder-current-title').style.fontSize = "55px";
+            document.getElementById('placeholder-current-title').style.lineHeight = "1.2";
+            document.getElementById('placeholder-current-title').parentElement.style.lineHeight = "1.2";
+            break;
+        default:
+            document.getElementById('placeholder-current-title').style.fontSize = "60px";
+            document.getElementById('placeholder-current-title').style.lineHeight = "1.3";
+            document.getElementById('placeholder-current-title').parentElement.style.lineHeight = "1.3";
+      }
     }
 
     
