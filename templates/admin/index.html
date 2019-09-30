@@ -3,38 +3,52 @@
 
 <head>
   <title>Ubucon Europe 2019 Presentations - Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="utf-8">
+  <style>
+  
+  .clickme, .clickme input {
+    height: 50px;
+    width: 300px;
+  }
+
+@media only screen and (max-width: 768px) {
+  /* For mobile phones: */
+  .clickme, .clickme input {
+    width: 95vw;
+  }
+}
+</style>
 </head>
 
 <body>
 
 <table>
   <tr>
-    <td>
-      <input 
-        id="form-previous-slide" 
-        type="button" 
-        value="Previous Slide"
-        style="height:50px;width:200px" 
-        onclick="sendEvent('previous');" 
-      />
-    </td>
-    <td>
+    <td class="clickme">
       <input 
         id="form-next-slide" 
         type="button" 
-        value="Next Slide"
-        style="height:50px;width:200px" 
+        value="&#8634; Toggle Auto-Loop &#8634;"
+        onclick="sendEvent('loop');" 
+      />
+    </td>
+  </tr><tr>
+    <td class="clickme">
+      <input 
+        id="form-next-slide" 
+        type="button" 
+        value="&rarr; Next Slide &rarr;"
         onclick="sendEvent('next');" 
       />
     </td>
-    <td>
+  </tr><tr>
+    <td class="clickme">
       <input 
-        id="form-next-slide" 
+        id="form-previous-slide" 
         type="button" 
-        value="Toggle Auto-Loop"
-        style="height:50px;width:200px" 
-        onclick="sendEvent('loop');" 
+        value="&larr; Previous Slide &larr;"
+        onclick="sendEvent('previous');" 
       />
     </td>
   </tr>
@@ -43,7 +57,7 @@
 <br><br><br>
 
 <form id="updateForm" method="POST" action="update">
-<table>
+<table class="formul">
   <tr>
     <td>Room:</td>
     <td><input id="form-room-name" type="text" name="room-name"></input></td>

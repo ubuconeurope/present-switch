@@ -150,12 +150,28 @@ name: main-title
 
     
     function moveSlides(objData) {
+      var slideCount = slideshow.getSlideCount()-1;
+      var currentSlide = slideshow.getCurrentSlideIndex();
+
+      window.clearTimeout(timeoutID);
+      timeoutID = setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
+
       switch(objData.action){
         case "next":
-          slideshow.gotoNextSlide();
+          if (currentSlide == slideCount) {
+            slideshow.gotoFirstSlide();
+          }
+          else { 
+            slideshow.gotoNextSlide(); 
+          }
           break;
         case "previous":
-          slideshow.gotoPreviousSlide();
+          if (currentSlide == 0) {
+            slideshow.gotoLastSlide();
+          }
+          else { 
+            slideshow.gotoPreviousSlide(); 
+          }
           break;
         case "go-to":
           slideshow.gotoSlide(objData.slide);
