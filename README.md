@@ -34,8 +34,12 @@ curl -X POST -H 'Content-Type: application/json'  "http://localhost:3000/rooms/1
 ```
 
 If you set the environment variables `ROOMS_AUTH_USERNAME` and `ROOMS_AUTH_PASSWORD`, 
-this admin pages are protected with BasicAuth
+this updates (POST) are protected with BasicAuth
 
+If you want to run this in a raspberry pi via ssh, you may open the browser using:
+```
+chromium-browser --app=http://localhost:3000/rooms/1 --display=:0 --start-fullscreen
+```
 
 ## Admin page
 
