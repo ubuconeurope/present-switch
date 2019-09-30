@@ -110,6 +110,8 @@ Sponsors - Gold
     var isAutoLooping = false;
 
     function updateTemplate(objData) {
+      slideshow.gotoSlide(1);
+
       document.getElementById('placeholder-room-name').innerHTML = objData.room;
       document.getElementById('placeholder-current-title').innerHTML = objData.title;
       document.getElementById('placeholder-current-speaker').innerHTML = objData.speaker;
@@ -117,9 +119,13 @@ Sponsors - Gold
       document.getElementById('placeholder-next-title').innerHTML  = objData.n_title;
       document.getElementById('placeholder-next-speaker').innerHTML  = "by: "+objData.n_speaker;
       document.getElementById('placeholder-next-time').innerHTML  = "@ "+objData.n_time;
-      document.getElementById('placeholder-auto-loop-sec').innerHTML  = "@ "+objData.auto_loop_sec;
+      document.getElementById('placeholder-auto-loop-sec').innerHTML = objData.auto_loop_sec;
       
+      // Handle auto-loop
       objData.auto_loop_sec == 0 ? isAutoLooping = false : isAutoLooping = true;
+      window.clearTimeout(timeoutID);
+      timeoutID = setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
+
       // Resize the title to fit the slide
       j = objData.title.length
       switch (true) {
@@ -154,6 +160,7 @@ Sponsors - Gold
           break;
         case "loop":
           isAutoLooping = !isAutoLooping;
+          setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
           break;
         default:
           console.log("Unknown event kind: "+message.kind);
@@ -210,10 +217,13 @@ Sponsors - Gold
         if (currentSlide == slideCount) {
           varObject.gotoFirstSlide();
         }
-        else { varObject.gotoNextSlide(); }
+        else { 
+          varObject.gotoNextSlide(); 
+        }
+        timeoutID = setTimeout(function () {slideshowCarousel(varObject)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
       }
     }
-    setInterval(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
+    timeoutID = setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
   </script>
 
 </html>
