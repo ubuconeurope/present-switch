@@ -111,6 +111,7 @@ name: main-title
   <script type="text/javascript">
     var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1];
     var isAutoLooping = false;
+    var timeoutIDs = [];
 
     function updateTemplate(objData) {
       //slideshow.gotoSlide(1);
@@ -125,8 +126,10 @@ name: main-title
       
       // Handle auto-loop
       objData.auto_loop_sec == 0 ? isAutoLooping = false : isAutoLooping = true;
-      window.clearTimeout(timeoutID);
-      timeoutID = setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
+      for (i=0, len=timeoutIDs.length; i < len; i++){
+        window.clearTimeout(timeoutIDs.pop());
+      }
+      timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
 
       // Resize the title to fit the slide
       j = objData.title.length
@@ -153,8 +156,11 @@ name: main-title
       var slideCount = slideshow.getSlideCount()-1;
       var currentSlide = slideshow.getCurrentSlideIndex();
 
-      window.clearTimeout(timeoutID);
-      timeoutID = setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
+      for (i=0, len=timeoutIDs.length; i < len; i++){
+        window.clearTimeout(timeoutIDs.pop());
+      }
+      timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
+
 
       switch(objData.action){
         case "next":
@@ -177,7 +183,11 @@ name: main-title
           slideshow.gotoSlide(objData.slide);
           break;
         case "loop":
-          isAutoLooping = !isAutoLooping;
+          if (document.getElementById('placeholder-auto-loop-sec').innerHTML == 0) {
+            isAutoLooping = false;
+          } else {
+            isAutoLooping = true;
+          }
           setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
           break;
         default:
@@ -238,10 +248,11 @@ name: main-title
         else { 
           varObject.gotoNextSlide(); 
         }
-        timeoutID = setTimeout(function () {slideshowCarousel(varObject)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
+      timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
+
       }
     }
-    timeoutID = setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
+    timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
   </script>
 
 </html>

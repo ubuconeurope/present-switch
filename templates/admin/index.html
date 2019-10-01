@@ -7,14 +7,24 @@
   <meta charset="utf-8">
   <style>
   
+  .autoloop {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+    border-radius: 50%;
+  }
+
   .clickme, .clickme input {
-    height: 50px;
+    height: 70px;
     width: 300px;
+    font-size: 18px;
   }
 
 @media only screen and (max-width: 768px) {
   /* For mobile phones: */
   .clickme, .clickme input {
+    height: 20vh;
     width: 95vw;
   }
 }
@@ -27,7 +37,8 @@
   <tr>
     <td class="clickme">
       <input 
-        id="form-next-slide" 
+        class="autoloop"
+        id="form-toggle-autoloop" 
         type="button" 
         value="&#8634; Toggle Auto-Loop &#8634;"
         onclick="sendEvent('loop');" 
@@ -111,31 +122,46 @@
     document.getElementById('form-next-speaker').value  = objData.n_speaker;
     document.getElementById('form-next-time').value  = objData.n_time;
     document.getElementById('form-auto-loop-sec').value  = objData.auto_loop_sec;
+    if (objData.auto_loop_sec == 0) {
+      document.getElementById('form-toggle-autoloop').value = "Start Auto-Loop"
+    } else {
+      document.getElementById('form-toggle-autoloop').value = "Stop Auto-Loop"
+    }
+
   }
 
   // Update template with GET request (first time)
-  var xmlHttp = new XMLHttpRequest();
-  xmlHttp.onreadystatechange = function() { 
-      if (xmlHttp.readyState == XMLHttpRequest.DONE && xmlHttp.status == 200){
-          objData = JSON.parse(xmlHttp.responseText);
-          updateTemplate(objData);
-      }
-  }
-  xmlHttp.open("GET", "/room-info/"+roomNumber, true); // true for asynchronous 
-  xmlHttp.send(null);
+  function requestUpdate(){
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == XMLHttpRequest.DONE && xmlHttp.status == 200){
+            objData = JSON.parse(xmlHttp.responseText);
+            updateTemplate(objData);
+        }
+    }
+    xmlHttp.open("GET", "/room-info/"+roomNumber, true); // true for asynchronous 
+    xmlHttp.send(null);
+  };
+  requestUpdate();
 
 
   function sendEvent(event_kind) {
     switch (event_kind){
       case "submit":
         document.getElementById('updateForm').submit();
+        requestUpdate();
         break;
       case "loop":
         if (document.getElementById('form-auto-loop-sec').value == 0) {
+          document.getElementById('form-toggle-autoloop').value = "Stop Auto-Loop"
           document.getElementById('form-auto-loop-sec').value = 5;
         } else {
+          document.getElementById('form-toggle-autoloop').value = "Start Auto-Loop"
           document.getElementById('form-auto-loop-sec').value = 0;
         }
+        document.getElementById('updateForm').submit();
+        requestUpdate();
+        break;
       default:
         var request = new XMLHttpRequest();
         request.open('POST', '/admin/'+roomNumber+'/control', true);
