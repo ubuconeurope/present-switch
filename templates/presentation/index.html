@@ -112,6 +112,7 @@ name: main-title
     var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1];
     var timeoutIDs = [];
     var isAutoLooping = document.getElementById('placeholder-auto-loop-sec').innerHTML == 0 ? false : true;
+    var firstSlideDelayCount = 0;
 
     function updateTemplate(objData) {
       //slideshow.gotoSlide(1);
@@ -241,12 +242,17 @@ name: main-title
       var currentSlide = varObject.getCurrentSlideIndex();
       
       if (isAutoLooping){
+        if (currentSlide == 0 && firstSlideDelayCount < 2){ // the first slide lasts 3 times more
+          firstSlideDelayCount+=1;
+        } else {
+          firstSlideDelayCount=0;
         // if the slideshow is on the last slide, go back to the first slide; if not, call gotoNextSlide();
         if (currentSlide == slideCount) {
           varObject.gotoFirstSlide();
         }
         else { 
           varObject.gotoNextSlide(); 
+        }
         }
       timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
       }
