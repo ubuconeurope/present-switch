@@ -110,8 +110,8 @@ name: main-title
   </script>
   <script type="text/javascript">
     var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1];
-    var isAutoLooping = false;
     var timeoutIDs = [];
+    var isAutoLooping = document.getElementById('placeholder-auto-loop-sec').innerHTML == 0 ? false : true;
 
     function updateTemplate(objData) {
       //slideshow.gotoSlide(1);
@@ -249,10 +249,27 @@ name: main-title
           varObject.gotoNextSlide(); 
         }
       timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
-
       }
     }
     timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
+
+    // Allow L key to toggle auto-loop
+    document.addEventListener('keypress', keyToggleAutoLoopL);
+    function keyToggleAutoLoopL(e) {
+      if (e.code == 'KeyL'){
+        if (document.getElementById('placeholder-auto-loop-sec').innerHTML == 0) {
+          document.getElementById('placeholder-auto-loop-sec').innerHTML=5;
+          isAutoLooping=true;
+          slideshow.gotoNextSlide();
+        } else {
+          document.getElementById('placeholder-auto-loop-sec').innerHTML=0;
+          isAutoLooping=false;
+          slideshow.gotoFirstSlide();
+        }
+      timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
+      }
+    }
+
   </script>
 
 </html>
