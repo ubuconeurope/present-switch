@@ -75,14 +75,17 @@ name: main-title
 
 # Gold Sponsors
 
-.center.v-align-mid[
+<br><br><br>
+<img style="float:left;width:200px;padding:40px;" src="img/ansol.png">
+<img style="float:left;width:250px;padding:40px;" src="img/angulosolido.jpg">
+<img style="float:left;width:300px;padding:40px;" src="img/libretrend.png">
 
-<br>
-<img src="img/ansol-300x38.png"><br><br><br>
-<img src="img/angulosolido.png"><br><br>
-<img src="img/libretrend.png">
 
-]
+---
+
+background-image: url(img/bg-partners.png)
+
+# Silver Sponsor & Partners
 
 
     </textarea>
@@ -246,15 +249,15 @@ name: main-title
           firstSlideDelayCount+=1;
         } else {
           firstSlideDelayCount=0;
-        // if the slideshow is on the last slide, go back to the first slide; if not, call gotoNextSlide();
-        if (currentSlide == slideCount) {
-          varObject.gotoFirstSlide();
+          // if the slideshow is on the last slide, go back to the first slide; if not, call gotoNextSlide();
+          if (currentSlide == slideCount) {
+            varObject.gotoFirstSlide();
+          }
+          else { 
+            varObject.gotoNextSlide(); 
+          }
         }
-        else { 
-          varObject.gotoNextSlide(); 
-        }
-        }
-      timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
+        timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
       }
     }
     timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
