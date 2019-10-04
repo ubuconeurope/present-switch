@@ -52,7 +52,7 @@ name: main-title
 .small[
 <table>
   <tr>
-    <td><b>Up Next:</b></td>
+    <td><b>Up&nbsp;Next:</b></td>
     <td><span id="placeholder-next-title"><!--Talk placeholder--></span></td>
   </tr>
   <tr><td></td><td><span id="placeholder-next-speaker"></span></td></tr>
@@ -65,21 +65,27 @@ name: main-title
 
 ---
 
-# Sponsors - 1
+# Diamond Sponsor
 
-Sponsors Diamond
-
----
-
-# Sponsors - 2
-
-Sponsors Platinum
+.center[
+<img src="img/ubuntu_black-orange_st_hex-400x400.png">
+]
 
 ---
 
-# Sponsors - 3
+# Gold Sponsors
 
-Sponsors - Gold
+<br><br><br>
+<img style="float:left;width:200px;padding:40px;" src="img/ansol.png">
+<img style="float:left;width:250px;padding:40px;" src="img/angulosolido.jpg">
+<img style="float:left;width:300px;padding:40px;" src="img/libretrend.png">
+
+
+---
+
+background-image: url(img/bg-partners.png)
+
+# Silver Sponsor & Partners
 
 
     </textarea>
@@ -107,35 +113,86 @@ Sponsors - Gold
   </script>
   <script type="text/javascript">
     var roomNumber = /.*\/rooms\/([0-9]+).*/.exec(location)[1];
-    var isAutoLooping = false;
+    var timeoutIDs = [];
+    var isAutoLooping = document.getElementById('placeholder-auto-loop-sec').innerHTML == 0 ? false : true;
+    var firstSlideDelayCount = 0;
 
     function updateTemplate(objData) {
+      //slideshow.gotoSlide(1);
       document.getElementById('placeholder-room-name').innerHTML = objData.room;
       document.getElementById('placeholder-current-title').innerHTML = objData.title;
       document.getElementById('placeholder-current-speaker').innerHTML = objData.speaker;
       document.getElementById('placeholder-current-time').innerHTML  = objData.time;
       document.getElementById('placeholder-next-title').innerHTML  = objData.n_title;
-      document.getElementById('placeholder-next-speaker').innerHTML  = "by: "+objData.n_speaker;
-      document.getElementById('placeholder-next-time').innerHTML  = "@ "+objData.n_time;
-      document.getElementById('placeholder-auto-loop-sec').innerHTML  = "@ "+objData.auto_loop_sec;
+      document.getElementById('placeholder-next-speaker').innerHTML  = objData.n_speaker == "" ? "" : "by: "+objData.n_speaker;
+      document.getElementById('placeholder-next-time').innerHTML  =  objData.n_time == "" ? "" : "@ "+objData.n_time;
+      document.getElementById('placeholder-auto-loop-sec').innerHTML = objData.auto_loop_sec;
       
+      // Handle auto-loop
       objData.auto_loop_sec == 0 ? isAutoLooping = false : isAutoLooping = true;
+      for (i=0, len=timeoutIDs.length; i < len; i++){
+        window.clearTimeout(timeoutIDs.pop());
+      }
+      timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
+
+      // Resize the title to fit the slide
+      j = objData.title.length
+      switch (true) {
+        case (j>75):
+            document.getElementById('placeholder-current-title').style.fontSize = "50px";
+            document.getElementById('placeholder-current-title').style.lineHeight = "1.1";
+            document.getElementById('placeholder-current-title').parentElement.style.lineHeight = "1.1";
+            break;
+        case (j>55):
+            document.getElementById('placeholder-current-title').style.fontSize = "55px";
+            document.getElementById('placeholder-current-title').style.lineHeight = "1.2";
+            document.getElementById('placeholder-current-title').parentElement.style.lineHeight = "1.2";
+            break;
+        default:
+            document.getElementById('placeholder-current-title').style.fontSize = "60px";
+            document.getElementById('placeholder-current-title').style.lineHeight = "1.3";
+            document.getElementById('placeholder-current-title').parentElement.style.lineHeight = "1.3";
+      }
     }
 
     
     function moveSlides(objData) {
+      var slideCount = slideshow.getSlideCount()-1;
+      var currentSlide = slideshow.getCurrentSlideIndex();
+
+      for (i=0, len=timeoutIDs.length; i < len; i++){
+        window.clearTimeout(timeoutIDs.pop());
+      }
+      timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
+
+
       switch(objData.action){
         case "next":
-          slideshow.gotoNextSlide();
+          if (currentSlide == slideCount) {
+            slideshow.gotoFirstSlide();
+          }
+          else { 
+            slideshow.gotoNextSlide(); 
+          }
           break;
         case "previous":
-          slideshow.gotoPreviousSlide();
+          if (currentSlide == 0) {
+            slideshow.gotoLastSlide();
+          }
+          else { 
+            slideshow.gotoPreviousSlide(); 
+          }
           break;
         case "go-to":
           slideshow.gotoSlide(objData.slide);
           break;
         case "loop":
-          isAutoLooping = !isAutoLooping;
+          if (document.getElementById('placeholder-auto-loop-sec').innerHTML == 0) {
+            isAutoLooping = false;
+          } else {
+            isAutoLooping = true;
+          }
+          setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
           break;
         default:
           console.log("Unknown event kind: "+message.kind);
@@ -188,14 +245,40 @@ Sponsors - Gold
       var currentSlide = varObject.getCurrentSlideIndex();
       
       if (isAutoLooping){
-        // if the slideshow is on the last slide, go back to the first slide; if not, call gotoNextSlide();
-        if (currentSlide == slideCount) {
-          varObject.gotoFirstSlide();
+        if (currentSlide == 0 && firstSlideDelayCount < 2){ // the first slide lasts 3 times more
+          firstSlideDelayCount+=1;
+        } else {
+          firstSlideDelayCount=0;
+          // if the slideshow is on the last slide, go back to the first slide; if not, call gotoNextSlide();
+          if (currentSlide == slideCount) {
+            varObject.gotoFirstSlide();
+          }
+          else { 
+            varObject.gotoNextSlide(); 
+          }
         }
-        else { varObject.gotoNextSlide(); }
+        timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
       }
     }
-    setInterval(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000);
+    timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
+
+    // Allow L key to toggle auto-loop
+    document.addEventListener('keypress', keyToggleAutoLoopL);
+    function keyToggleAutoLoopL(e) {
+      if (e.code == 'KeyL'){
+        if (document.getElementById('placeholder-auto-loop-sec').innerHTML == 0) {
+          document.getElementById('placeholder-auto-loop-sec').innerHTML=5;
+          isAutoLooping=true;
+          slideshow.gotoNextSlide();
+        } else {
+          document.getElementById('placeholder-auto-loop-sec').innerHTML=0;
+          isAutoLooping=false;
+          slideshow.gotoFirstSlide();
+        }
+      timeoutIDs.push(setTimeout(function () {slideshowCarousel(slideshow)}, document.getElementById('placeholder-auto-loop-sec').innerHTML*1000));
+      }
+    }
+
   </script>
 
 </html>

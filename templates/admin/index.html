@@ -3,38 +3,63 @@
 
 <head>
   <title>Ubucon Europe 2019 Presentations - Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="utf-8">
+  <style>
+  
+  .autoloop {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+    border-radius: 50%;
+  }
+
+  .clickme, .clickme input {
+    height: 70px;
+    width: 300px;
+    font-size: 18px;
+  }
+
+@media only screen and (max-width: 768px) {
+  /* For mobile phones: */
+  .clickme, .clickme input {
+    height: 20vh;
+    width: 95vw;
+  }
+}
+</style>
 </head>
 
 <body>
 
 <table>
   <tr>
-    <td>
+    <td class="clickme">
       <input 
-        id="form-previous-slide" 
+        class="autoloop"
+        id="form-toggle-autoloop" 
         type="button" 
-        value="Previous Slide"
-        style="height:50px;width:200px" 
-        onclick="sendEvent('previous');" 
+        value="&#8634; Toggle Auto-Loop &#8634;"
+        onclick="sendEvent('loop');" 
       />
     </td>
-    <td>
+  </tr><tr>
+    <td class="clickme">
       <input 
         id="form-next-slide" 
         type="button" 
-        value="Next Slide"
-        style="height:50px;width:200px" 
+        value="&rarr; Next Slide &rarr;"
         onclick="sendEvent('next');" 
       />
     </td>
-    <td>
+  </tr><tr>
+    <td class="clickme">
       <input 
-        id="form-next-slide" 
+        id="form-previous-slide" 
         type="button" 
-        value="Toggle Auto-Loop"
-        style="height:50px;width:200px" 
-        onclick="sendEvent('loop');" 
+        value="&larr; Previous Slide &larr;"
+        onclick="sendEvent('previous');" 
       />
     </td>
   </tr>
@@ -43,7 +68,7 @@
 <br><br><br>
 
 <form id="updateForm" method="POST" action="update">
-<table>
+<table class="formul">
   <tr>
     <td>Room:</td>
     <td><input id="form-room-name" type="text" name="room-name"></input></td>
@@ -97,31 +122,46 @@
     document.getElementById('form-next-speaker').value  = objData.n_speaker;
     document.getElementById('form-next-time').value  = objData.n_time;
     document.getElementById('form-auto-loop-sec').value  = objData.auto_loop_sec;
+    if (objData.auto_loop_sec == 0) {
+      document.getElementById('form-toggle-autoloop').value = "Start Auto-Loop"
+    } else {
+      document.getElementById('form-toggle-autoloop').value = "Stop Auto-Loop"
+    }
+
   }
 
   // Update template with GET request (first time)
-  var xmlHttp = new XMLHttpRequest();
-  xmlHttp.onreadystatechange = function() { 
-      if (xmlHttp.readyState == XMLHttpRequest.DONE && xmlHttp.status == 200){
-          objData = JSON.parse(xmlHttp.responseText);
-          updateTemplate(objData);
-      }
-  }
-  xmlHttp.open("GET", "/room-info/"+roomNumber, true); // true for asynchronous 
-  xmlHttp.send(null);
+  function requestUpdate(){
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == XMLHttpRequest.DONE && xmlHttp.status == 200){
+            objData = JSON.parse(xmlHttp.responseText);
+            updateTemplate(objData);
+        }
+    }
+    xmlHttp.open("GET", "/room-info/"+roomNumber, true); // true for asynchronous 
+    xmlHttp.send(null);
+  };
+  requestUpdate();
 
 
   function sendEvent(event_kind) {
     switch (event_kind){
       case "submit":
         document.getElementById('updateForm').submit();
+        requestUpdate();
         break;
       case "loop":
         if (document.getElementById('form-auto-loop-sec').value == 0) {
+          document.getElementById('form-toggle-autoloop').value = "Stop Auto-Loop"
           document.getElementById('form-auto-loop-sec').value = 5;
         } else {
+          document.getElementById('form-toggle-autoloop').value = "Start Auto-Loop"
           document.getElementById('form-auto-loop-sec').value = 0;
         }
+        document.getElementById('updateForm').submit();
+        requestUpdate();
+        break;
       default:
         var request = new XMLHttpRequest();
         request.open('POST', '/admin/'+roomNumber+'/control', true);
